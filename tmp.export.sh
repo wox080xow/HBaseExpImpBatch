@@ -1,7 +1,16 @@
+# variables
 starttime=$(date -d $1 +%s)
 endtime=$(date -d $2 +%s)
 #outputdirp="hdfs://isicdp.example.com:8020/tmp/"
 outputdirp="/tmp/"
+tablelist="table.list.tmp"
+
+# generate table list
+echo "list"|hbase shell -n >list.hbaseshell.tmp
+lines=$(($(($(cat list.hb.tmp|wc -l)-3))/2))
+#echo $lines
+cat list.hbaseshell.tmp|tail -n $lines >$tablelist
+
 while read t
 do
   # variables
@@ -51,4 +60,4 @@ do
   rows=$(grep $rowstring $rcout|sed 's/[[:space:]][[:space:]]*//'|cut -d'=' -f2)
   echo $rows
   echo "$t,$rows" >>$rclist
-done <tmp.table.list
+done <$tablelist
