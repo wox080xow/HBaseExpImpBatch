@@ -11,6 +11,20 @@ lines=$(($(($(cat list.hb.tmp|wc -l)-3))/2))
 #echo $lines
 cat list.hbaseshell.tmp|tail -n $lines >$tablelist
 
+# export desc table
+descline=""
+while read t
+do
+  descseg="desc '$t'"
+  descline=$descline"\n"$descseg
+done <table.list
+rm -rf table.list
+
+echo -e $b|hbase shell -n >>desc.list
+echo "desc.list is created."
+# send desc.list to cdp hdfs
+
+# export batch
 while read t
 do
   # variables
