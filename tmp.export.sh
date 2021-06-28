@@ -3,7 +3,7 @@ starttime=$(date -d $1 +%s)
 endtime=$(date -d $2 +%s)
 #outputdirp="hdfs://isicdp.example.com:8020/tmp/"
 #outputdirp="/tmp/"
-outputdir="hdfs://malvin-cdp-m1.example.com:8020/tmp/"
+outputdirp="hdfs://malvin-cdp-m1.example.com:8020/tmp/"
 
 # dir for tmp files
 tmpdir="OMNI_TMP_FILES/"
@@ -16,15 +16,24 @@ else
 fi
 
 # files
-tablelist="%{tmpdir}table.list.tmp" # new line seperated tables
-desclist="%{tmpdir}desc.list.tmp" # hbase shell desc 'table' output
+tablelist="${tmpdir}table.list.tmp" # new line seperated tables
+listlist="${tmpdir}list.list.tmp" # hbase shell list output
+desclist="${tmpdir}desc.list.tmp" # hbase shell desc 'table' output
 
 # generate table list
-echo "list"|hbase shell -n >list.hbaseshell.tmp
-lines=$(($(($(cat list.hb.tmp|wc -l)-3))/2))
+if [[ -f $tablelist ]]
+then
+  echo "$tablelist is existed, remove old tmp file"
+  rm -rf $tablelist
+fi
+echo "list"|hbase shell -n >$listlist
+lines=$(($(($(cat $listlist|wc -l)-3))/2))
 #echo $lines
-cat list.hbaseshell.tmp|tail -n $lines >$tablelist
-echo "$tablelist is created"
+cat $listlist|tail -n $lines >$tablelist
+if [[ -f $tablelist ]]
+then
+  echo "$tablelist is created"
+fi
 
 # export desc table
 descline=""
@@ -33,7 +42,7 @@ do
   descseg="desc '$t'"
   descline=$descline"\n"$descseg
 done <$tablelist
-rm -rf $tablelist
+#rm -rf $tablelist
 
 echo -e $descline|hbase shell -n >>$desclist
 echo "$desclist is created."
@@ -51,16 +60,16 @@ do
   outputdir="export-$name"
 
   # files
-  mrout="%{tmpdir}mr-$outputdir.out.tmp" # mapreduce.Export output
-  rcout="%{tmpdir}rc-$name.out.tmp" # mapreduce.RowCount output
-  checklist="%{tmpdir}success.table.list.tmp" # new line seperated tables
-  rclist="%{tmpdir}rc.table.list.tmp" # new line seperated rowcount outcome, each line look like: table,100
+  expout="${tmpdir}mr-$outputdir.out.tmp" # mapreduce.Export output
+  rcout="${tmpdir}mr-rc-$name.out.tmp" # mapreduce.RowCount output
+  checklist="${tmpdir}success.table.list.tmp" # new line seperated tables
+  rclist="${tmpdir}rc.table.list.tmp" # new line seperated rowcount outcome, each line look like: table,100
 
   # check if table export done
-  echo "START table $t EXPORT"
-  if [ -f success.table.list.tmp ]
+  echo -e "*****START table $t EXPORT*****"
+  if [ -f $checklist ]
   then
-    echo "checklist exists"
+    echo "checklist $checklist exists"
   else
     touch $checklist
     echo "checklist $checklist is touched"
@@ -73,26 +82,30 @@ do
     continue
   fi
 
-  hbase org.apache.hadoop.hbase.mapreduce.Export $t $outputdirp$outputdir 1 $starttime $endtime >$mrout 2>&1
+  hbase org.apache.hadoop.hbase.mapreduce.Export $t $outputdirp$outputdir 1 $starttime $endtime >$expout 2>&1
   #a=$(hbase org.apache.hadoop.hbase.mapreduce.Export $t $outputdirp$outputdir 1 $starttime $endtime)
-  echo $starttime $endtime
-  echo $outputdirp$outputdir
-  echo $mrout
+  #echo $starttime $endtime
+  echo "output directory:" $outputdirp$outputdir
+  echo $expout
   echo $rcout
   
   # record table export successful
   checkstring="successfully"
-  check=$(grep $string $mrout)
+  check=$(grep $checkstring $expout)
   echo $check
   if [[ $check =~ $checkstring ]]
   then 
     echo $t >> $checklist
   fi
   
-  # record table and row count
+  # record table row count
   hbase org.apache.hadoop.hbase.mapreduce.RowCounter $t --starttime=$starttime --endtime=$endtime >$rcout 2>&1
   rowstring="ROWS"
   rows=$(grep $rowstring $rcout|sed 's/[[:space:]][[:space:]]*//'|cut -d'=' -f2)
-  echo $rows
+  #echo $rows
+  if [[ -z $rows ]]
+  then
+     rows=0
+  fi
   echo "$t,$rows" >>$rclist
 done <$tablelist
