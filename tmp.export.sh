@@ -2,14 +2,19 @@
 starttime=$(date -d $1 +%s)
 endtime=$(date -d $2 +%s)
 #outputdirp="hdfs://isicdp.example.com:8020/tmp/"
-outputdirp="/tmp/"
-tablelist="table.list.tmp"
+#outputdirp="/tmp/"
+outputdir="hdfs://malvin-cdp-m1.example.com:8020/tmp/"
+
+# files
+tablelist="table.list.tmp" # new line seperated tables
+desclist="desc.list.tmp" # hbase shell desc 'table' output
 
 # generate table list
 echo "list"|hbase shell -n >list.hbaseshell.tmp
 lines=$(($(($(cat list.hb.tmp|wc -l)-3))/2))
 #echo $lines
 cat list.hbaseshell.tmp|tail -n $lines >$tablelist
+echo "$tablelist is created"
 
 # export desc table
 descline=""
@@ -17,12 +22,16 @@ while read t
 do
   descseg="desc '$t'"
   descline=$descline"\n"$descseg
-done <table.list
-rm -rf table.list
+done <$tablelist
+rm -rf $tablelist
 
-echo -e $b|hbase shell -n >>desc.list
-echo "desc.list is created."
-# send desc.list to cdp hdfs
+echo -e $descline|hbase shell -n >>$desclist
+echo "$desclist is created."
+
+
+# send $desclist to cdp hdfs
+# echo "$desclist is sent to CDP."
+
 
 # export batch
 while read t
@@ -30,10 +39,12 @@ do
   # variables
   name="$t-$1-$2"
   outputdir="export-$name"
-  mrout="mr-$outputdir.out.tmp"
-  rcout="rc-$name.out.tmp"
-  checklist="success.table.list.tmp"
-  rclist="rc.table.list.tmp"
+
+  # files
+  mrout="mr-$outputdir.out.tmp" # mapreduce.Export output
+  rcout="rc-$name.out.tmp" # mapreduce.RowCount output
+  checklist="success.table.list.tmp" # new line seperated tables
+  rclist="rc.table.list.tmp" # new line seperated rowcount outcome, each line look like: table,100
 
   # check if table export done
   echo "START table $t EXPORT"
