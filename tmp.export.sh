@@ -5,9 +5,19 @@ endtime=$(date -d $2 +%s)
 #outputdirp="/tmp/"
 outputdir="hdfs://malvin-cdp-m1.example.com:8020/tmp/"
 
+# dir for tmp files
+tmpdir="OMNI_TMP_FILES/"
+if [[ -d $tmpdir ]]
+then
+  echo "directory $tmpdir for tmp files is exist"
+else
+  mkdir $tmpdir
+  echo "directory $tmpdir for tmp files is created"
+fi
+
 # files
-tablelist="table.list.tmp" # new line seperated tables
-desclist="desc.list.tmp" # hbase shell desc 'table' output
+tablelist="%{tmpdir}table.list.tmp" # new line seperated tables
+desclist="%{tmpdir}desc.list.tmp" # hbase shell desc 'table' output
 
 # generate table list
 echo "list"|hbase shell -n >list.hbaseshell.tmp
@@ -41,10 +51,10 @@ do
   outputdir="export-$name"
 
   # files
-  mrout="mr-$outputdir.out.tmp" # mapreduce.Export output
-  rcout="rc-$name.out.tmp" # mapreduce.RowCount output
-  checklist="success.table.list.tmp" # new line seperated tables
-  rclist="rc.table.list.tmp" # new line seperated rowcount outcome, each line look like: table,100
+  mrout="%{tmpdir}mr-$outputdir.out.tmp" # mapreduce.Export output
+  rcout="%{tmpdir}rc-$name.out.tmp" # mapreduce.RowCount output
+  checklist="%{tmpdir}success.table.list.tmp" # new line seperated tables
+  rclist="%{tmpdir}rc.table.list.tmp" # new line seperated rowcount outcome, each line look like: table,100
 
   # check if table export done
   echo "START table $t EXPORT"
