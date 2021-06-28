@@ -3,6 +3,53 @@ do
   hbase org.apache.hadoop.hbase.mapreduce.Import $t /tmp/export-$t
 done < tmp.table.list
 
+# list of drop table line
+disabletable=""
+droptable=""
+
+# files
+tabletobecreatedlist="tabletobecreated.list.tmp"
+disabletablelist="disabletable.list.tmp"
+droptablelist="droptable.list.tmp"
+tabledisabledlist="tabledisabled.out.list.tmp"
+tabledroppedlist="tabledropped.out.list.tmp"
+desclist="desc.list.tmp"
+
+rm -f $disabletablelist $droptablelist
+while read t
+do
+  tableAd=$(echo $t|sed "s/^/\'/;s/$/\'/")
+  disabletable="disable $tableAd"
+  droptable="drop $tableAd"
+  echo $disabletable >>$disabletablelist
+  echo $droptable >>$droptablelist
+done <$tabletobecreatedlist
+
+# disable table through hbase shell
+dtb=""
+while read l
+do
+  dta=$l
+  dtb=$dtb"\n"$dta
+done <$disabletablelist
+
+echo -e $dtb
+echo -e $dtb|hbase shell -n >>$tabledisabledlist
+echo "All tables are disabled."
+
+# drop table through hbase shell
+dtb=""
+while read l
+do
+  dta=$l
+  dtb=$dtb"\n"$dta
+done <$droptablelist
+
+echo -e $dtb
+echo -e $dtb|hbase shell -n >>$tabledroppedlist
+echo "All tables are dropped."
+
+
 # CREATE TEMP TABLE
 
 # list of create table line
@@ -63,8 +110,8 @@ echo "All table is created."
 # variables
 starttime=$(date -d $1 +%s)
 endtime=$(date -d $2 +%s)
-#outputdirp="hdfs://isicdp.example.com:8020/tmp/"
-outputdirp="/tmp/"
+#inputdirp="hdfs://isicdp.example.com:8020/tmp/"
+inputdirp="/tmp/"
 tablelist="table.list.tmp"
 
 # generate table list
@@ -77,13 +124,13 @@ while read t
 do
   # variables
   name="$t-$1-$2"
-  outputdir="export-$name"
-  mrout="mr-$outputdir.out.tmp"
+  inputdir="export-$name"
+  mrout="mr-$inputdir.out.tmp"
   rcout="rc-$name.out.tmp"
   checklist="success.table.list.tmp"
   rclist="rc.table.list.tmp"
 
-  # check if table export done
+  # check if table import done
   echo "START table $t EXPORT"
   if [ -f success.table.list.tmp ]
   then
@@ -100,14 +147,14 @@ do
     continue
   fi
 
-  hbase org.apache.hadoop.hbase.mapreduce.Export $t $outputdirp$outputdir 1 $starttime $endtime >$mrout 2>&1
-  #a=$(hbase org.apache.hadoop.hbase.mapreduce.Export $t $outputdirp$outputdir 1 $starttime $endtime)
+  hbase org.apache.hadoop.hbase.mapreduce.Import $t $inputdirp$inputdir >$mrout 2>&1
+  #a=$(hbase org.apache.hadoop.hbase.mapreduce.Import $t $inputdirp$inputdir 1 $starttime $endtime)
   echo $starttime $endtime
-  echo $outputdirp$outputdir
+  echo $inputdirp$inputdir
   echo $mrout
   echo $rcout
   
-  # record table export successful
+  # record table import successful
   checkstring="successfully"
   check=$(grep $string $mrout)
   echo $check
