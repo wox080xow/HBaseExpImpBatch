@@ -1,3 +1,20 @@
+function usage() {
+   echo -e "Usage:  sh $0 starttime endtime\n\te.g.\n\tsh $0 210601 210630"
+   exit 1
+}
+
+if [[ -z $1 ]]
+then
+  usage
+  exit 1
+fi
+
+if [[ -z $2 ]]
+then
+  usage
+  exit 1
+fi
+
 # dir for tmp files
 tmpdir="OMNI_TMP_FILES/"
 if [[ -d $tmpdir ]]
