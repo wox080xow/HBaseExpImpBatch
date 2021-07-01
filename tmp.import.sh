@@ -18,8 +18,8 @@ desclistfilename="desc.list.tmp"
 desclist="${tmpdir}$desclistfilename" # hbase shell desc 'table' output FROM HDP
 desclistfile="/$desclistfilename"
 
-tablelist="${tmpdir}table.list.tmp" new line seperated tables
-tabletobecreatedlist="${tmpdir}tabletobecreated.list.tmp" new line seperated tmp tables
+tablelist="${tmpdir}table.list.tmp" # new line seperated tables
+tabletobecreatedlist="${tmpdir}tabletobecreated.list.tmp" # new line seperated tmp tables
 createtablelist="${tmpdir}createtable.list.tmp" # hbase shell create 'table','cf',... input
 tablecreatedlist="${tmpdir}tablecreated.list.tmp" # hbase shell create 'table,'cf',... output
 
@@ -33,6 +33,7 @@ if [[ -f $tabletobecreatedlist ]]
 then
   echo "$tabletobecreatedlist exists"
 else
+  touch $tabletobecreatedlist
   echo "$tabletobecreatedlist is touched"
 fi
 
