@@ -1,3 +1,20 @@
+function usage() {
+   echo -e "Usage:  sh $0 starttime endtime\n\te.g.\n\tsh $0 210601 210630"
+   exit 1
+}
+
+if [[ -z $1 ]]
+then
+  usage
+  exit 1
+fi
+
+if [[ -z $2 ]]
+then
+  usage
+  exit 1
+fi
+
 # variables
 # for export batch
 starttime=$(date -d $1 +%s)
@@ -58,9 +75,9 @@ echo "$desclist is created."
 
 # send $desclist to cdp hdfs
 discpout="${tmpdir}mr-distcp.out.tmp
-hdfs dfs -put $desclist $srcdir
+hdfs dfs -put -f $desclist $srcdir
 echo $desclist $srcdir
-hadoop distcp $srchdfs$srcdir$desclistfile $desthdfs$destdir >$distcpout 2>&1
+hadoop distcp -overwrite $srchdfs$srcdir$desclistfile $desthdfs$destdir >$distcpout 2>&1
 echo $srchdfs$srcdir$desclistfile $desthdfs$destdir
 echo "$desclist is sent to CDP."
 
