@@ -1,9 +1,15 @@
 # variables
+# for export batch
 starttime=$(date -d $1 +%s)
 endtime=$(date -d $2 +%s)
+srchdfs="hdfs://malvin-hdp2-m1.example.com:8020"
+desthdfs="hdfs://malvin-cdp-m1.example.com:8020"
 #outputdirp="hdfs://isicdp.example.com:8020/tmp/"
-#outputdirp="/tmp/"
-outputdirp="hdfs://malvin-cdp-m1.example.com:8020/tmp/"
+outputdirp="$desthdfs/tmp/"
+
+# for send $desclist to cdp hdfs
+srcdir="/tmp"
+destdir="/tmp"
 
 # dir for tmp files
 tmpdir="OMNI_TMP_FILES/"
@@ -18,7 +24,9 @@ fi
 # files
 tablelist="${tmpdir}table.list.tmp" # new line seperated tables
 listlist="${tmpdir}list.list.tmp" # hbase shell list output
-desclist="${tmpdir}desc.list.tmp" # hbase shell desc 'table' output
+desclistfilename="desc.list.tmp"
+desclist="${tmpdir}$desclistfilename" # hbase shell desc 'table' output
+desclistfile="/$desclistfilename"
 
 # generate table list
 if [[ -f $tablelist ]]
@@ -49,7 +57,11 @@ echo "$desclist is created."
 
 
 # send $desclist to cdp hdfs
-# echo "$desclist is sent to CDP."
+hdfs dfs -put $desclist $srcdir
+echo $desclist $srcdir
+hadoop distcp $srchdfs$srcdir$desclistfile $desthdfs$destdir
+echo $srchdfs$srcdir$desclistfile $desthdfs$destdir
+echo "$desclist is sent to CDP."
 
 
 # export batch
