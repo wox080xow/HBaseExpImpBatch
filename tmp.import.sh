@@ -38,7 +38,7 @@ desclistfile="/$desclistfilename"
 tablelist="${tmpdir}table.list.tmp" # new line seperated tables
 tabletobecreatedlist="${tmpdir}tabletobecreated.list.tmp" # new line seperated tmp tables
 createtablelist="${tmpdir}createtable.list.tmp" # hbase shell create 'table','cf',... input
-tablecreatedlist="${tmpdir}tablecreated.list.tmp" # hbase shell create 'table,'cf',... output
+tablecreatedlist="${tmpdir}tablecreated.out.list.tmp" # hbase shell create 'table,'cf',... output
 
 # DROP TEMP TABLES
 
@@ -54,7 +54,15 @@ else
   echo "$tabletobecreatedlist is touched"
 fi
 
-rm -f $disabletablelist $droptablelist
+if [[ -f $disabletablelist ]] || [[ -f $droptablelist ]]
+then
+  rm -f $disabletablelist $droptablelist
+  echo "remove tmp files $disabletablelist $droptablelist"
+else
+  touch $disabletablelist $droptablelist
+  echo "$disabletablelist and $droptablelist are touched"
+fi
+
 while read t
 do
   tableAd=$(echo $t|sed "s/^/\'/;s/$/\'/")
@@ -74,7 +82,7 @@ done <$disabletablelist
 
 echo -e $dtb
 echo -e $dtb|hbase shell -n >>$tabledisabledlist
-echo "All tables are disabled."
+echo "Tables above are disabled."
 
 # drop table through hbase shell
 dtb=""
@@ -86,7 +94,7 @@ done <$droptablelist
 
 echo -e $dtb
 echo -e $dtb|hbase shell -n >>$tabledroppedlist
-echo "All tables are dropped."
+echo "Tables above are dropped."
 
 
 # CREATE TEMP TABLE
@@ -96,36 +104,44 @@ createtable=""
 
 # get $desclist from CDP hdfs
 destdir="/tmp"
-hdfs dfs -get $destdir$desclistfile $tmpdir
+hdfs dfs -get -f $destdir$desclistfile $tmpdir
 
-rm -f $createtablelist
+rm -f $tablelist $createtablelist $tabletobecreatedlist
+echo "tmp files $tablelist $createtablelist $tabletobecreatedlist"
 while read l
 do
   table="Table"
   cf="NAME =>"
   #echo $l
   #echo -e "\n*****createtable string:\n$createtable\n"
+
+  # deal with table name
   if [[ $l =~ $table ]]
   then
     tableA=$(echo $l|cut -d' ' -f2)
-    tableB=$(echo "${tableA}_OMNI_TMP")
+    tableB="${tableA}_OMNI_TMP"
     tableC=$(echo $tableB|sed "s/^/\'/;s/$/\'/")
     echo $tableA >>$tablelist
     echo $tableB >>$tabletobecreatedlist
-    echo $tableC
-    echo 'this is table'
-    createtable="create $tableB"
+    #echo $tableC
+    #echo 'this is table'
+    createtable="create $tableC"
+    echo $createtable
     #echo -e "\n*****createtable string:\n$createtable\n"
   fi
+  
+  # deal with column family attribute
   if [[ $l =~ $cf ]]
   then
     #echo $l|sed 's/FOREVER/org.apache.hadoop.hbase.HConstants::FOREVER/'
-    echo $l|sed "s/ TTL => 'FOREVER',//"
+    #echo $l|sed "s/ TTL => 'FOREVER',//"
     #echo 'this is column family'
     #createtable="$createtable, $(echo $l|sed 's/FOREVER/org.apache.hadoop.hbase.HConstants::FOREVER/')"
     createtable="$createtable, $(echo $l|sed "s/ TTL => 'FOREVER',//")"
     #echo -e "\n*****createtable string:\n$createtable\n"
   fi
+
+  # output "hbase shell input" to file
   if [[ $l = "nil" ]]
   then
     echo $createtable >>$createtablelist
@@ -143,7 +159,9 @@ do
 done <$createtablelist
 
 echo -e $ctb|hbase shell -n >>$tablecreatedlist
-echo "All table is created."
+echo "Tables above are created."
+
+# IMPORT BATCH
 
 # variables
 starttime=$(date -d $1 +%s)
@@ -151,56 +169,69 @@ endtime=$(date -d $2 +%s)
 #inputdirp="hdfs://isicdp.example.com:8020/tmp/"
 inputdirp="/tmp/"
 
-# import batch
 while read t
 do
   # variables
   name="$t-$1-$2"
   inputdir="export-$name"
   tmpt=${t}_OMNI_TMP
-
+  
   # files
   impout="${tmpdir}mr-imp-$inputdir.out.tmp" # mapreduce.Import output
   rcout="${tmpdir}mr-rc-$name.out.tmp" # mapreduce.RowCount ouput
   checklist="${tmpdir}success.table.list.tmp" # new line seperated tables
   rclist="${tmpdir}rc.table.list.tmp" # new line seperated row count outcome, each line look like: table,100
 
-  # check if table import done
+  echo $t
+  echo $tmpt
+
+  # check if table import done (testing...
   echo "START table $tmpt IMPORT"
-  if [ -f success.table.list.tmp ]
+  if [ -f $checklist ]
   then
     echo "checklist exists"
   else
     touch $checklist
     echo "checklist $checklist is touched"
   fi
+
   success=$(grep -w $tmpt $checklist)
   echo $success
   if [[ $success = $tmpt ]]
   then
     echo "table $tmpt is done, continue with next table"
     continue
+  else  
+    echo "START table $tmpt IMPORT"
   fi
 
+  # import table
   hbase org.apache.hadoop.hbase.mapreduce.Import $tmpt $inputdirp$inputdir >$impout 2>&1
   echo $starttime $endtime
   echo $inputdirp$inputdir
   echo $impout
   echo $rcout
-  
+
   # record table import successful
   checkstring="successfully"
-  check=$(grep $string $impout)
-  echo $check
+  check=$(grep $checkstring $impout)
   if [[ $check =~ $checkstring ]]
-  then 
+  then
     echo $tmpt >> $checklist
+    echo $check
+  else
+    echo "Import failed..."
   fi
-  
+
   # record table and row count
   hbase org.apache.hadoop.hbase.mapreduce.RowCounter $tmpt --starttime=$starttime --endtime=$endtime >$rcout 2>&1
-  rowstring="ROWS"
+  rowstring="ROWS="
   rows=$(grep $rowstring $rcout|sed 's/[[:space:]][[:space:]]*//'|cut -d'=' -f2)
-  echo $rows
+  if [[ -z $rows ]]
+  then
+     rows=0
+  fi
+  echo $rowstring$rows
   echo "$tmpt,$rows" >>$rclist
+
 done <$tablelist
