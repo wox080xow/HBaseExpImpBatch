@@ -14,7 +14,10 @@ droptablelist="${tmpdir}droptable.list.tmp" # habase shell drop 'table' input
 tabledisabledlist="${tmpdir}tabledisabled.out.list.tmp" # hbase shell disable 'talbe' output
 tabledroppedlist="${tmpdir}tabledropped.out.list.tmp" # hbase shell drop 'table' output
 
-desclist="${tmpdir}desc.list.tmp" # hbase shell desc 'table' output FROM HDP
+desclistfilename="desc.list.tmp"
+desclist="${tmpdir}$desclistfilename" # hbase shell desc 'table' output FROM HDP
+desclistfile="/$desclistfilename"
+
 tablelist="${tmpdir}table.list.tmp" new line seperated tables
 tabletobecreatedlist="${tmpdir}tabletobecreated.list.tmp" new line seperated tmp tables
 createtablelist="${tmpdir}createtable.list.tmp" # hbase shell create 'table','cf',... input
@@ -25,6 +28,13 @@ tablecreatedlist="${tmpdir}tablecreated.list.tmp" # hbase shell create 'table,'c
 # list of drop table line
 disabletable=""
 droptable=""
+
+if [[ -f $tabletobecreatedlist ]]
+then
+  echo "$tabletobecreatedlist exists"
+else
+  echo "$tabletobecreatedlist is touched"
+fi
 
 rm -f $disabletablelist $droptablelist
 while read t
@@ -65,6 +75,10 @@ echo "All tables are dropped."
 
 # list of create table line
 createtable=""
+
+# get $desclist from CDP hdfs
+destdir="/tmp"
+hdfs dfs -get $destdir$desclistfile $tmpdir
 
 rm -f $createtablelist
 while read l
