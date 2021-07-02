@@ -33,6 +33,14 @@ tablelistO="${tmpdir}origin.table.list-$1-$2.tmp" # new line seperated tables fo
 tabletobecreatedlistO="${tmpdir}origin.tabletobecreated.list-$1-$2.tmp" # new line seperated tmp tables
 createtablelistO="${tmpdir}origin.createtable.list-$1-$2.tmp" # hbase shell create 'table','cf',... input
 tablecreatedlistO="${tmpdir}origin.tablecreated.out.list-$1-$2.tmp" # hbase shell create 'table,'cf',... output
+tablelistE="${tmpdir}exist.table.list.tmp"
+
+# generate table list in CDP HBase
+echo "list"|hbase shell -n >list.list.tmp
+lines=$(($(($(cat list.list.tmp|wc -l)-3))/2))
+#echo $lines
+cat list.list.tmp|tail -n $lines >$tablelistE
+rm -f list.list.tmp
 
 # CREATE TABLE IF NOT EXISTS
 
@@ -78,7 +86,12 @@ do
   # output "hbase shell input" to file
   if [[ $l = "nil" ]]
   then
-    echo $createtable >>$createtablelistO
+    if [[ $(grep -v OMNI_TMP $tablelistE) =~ $tableA ]]
+    then
+      echo "$tableA exists"
+    else
+      echo $createtable >>$createtablelistO
+    fi
     createtable=""
     #echo 'the end of desc'
     #echo -e "\n*****createtable string:\n$createtable\n"
