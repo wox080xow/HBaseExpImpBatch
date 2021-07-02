@@ -45,10 +45,6 @@ tablecreatedlistO="${tmpdir}origin.tablecreated.out.list.tmp" # hbase shell crea
 # list of create table line
 createtable=""
 
-# get $desclist from CDP hdfs
-destdir="/tmp"
-hdfs dfs -get -f $destdir$desclistfile $tmpdir
-
 rm -f $createtablelistO $tabletobecreatedlistO
 echo "tmp files $createtablelistO and $tabletobecreatedlistO are removed"
 
@@ -62,10 +58,9 @@ do
   if [[ $l =~ $table ]]
   then
     tableA=$(echo $l|cut -d' ' -f2)
-    tableB="${tableA}_OMNI_TMP"
-    tableC=$(echo $tableB|sed "s/^/\'/;s/$/\'/")
-    #echo $tableA >>$tablelistO
-    echo $tableB >>$tabletobecreatedlistO
+    #tableB="${tableA}_OMNI_TMP"
+    tableC=$(echo $tableA|sed "s/^/\'/;s/$/\'/")
+    echo $tableA >>$tabletobecreatedlistO
     #echo $tableC
     createtable="create $tableC"
     echo $createtable
@@ -110,7 +105,7 @@ endtime=$(date -d $2 +%s)
 while read t
 do 
   # variables
-  tmpt="${t}_OMNI_TMP
+  tmpt="${t}_OMNI_TMP"
 
   # files
   cpout="${tmpdir}mr-cp-$tmpt.out.tmp" # mapreduce.CopyTable output
@@ -140,20 +135,26 @@ do
   # merge 
   hbase org.apache.hadoop.hbase.mapreduce.CopyTable --new.name=$t $tmpt >$cpout 2>&1
   echo $cpout
-  
-  # record table import successful
+
+  # record table merge successful
   checkstring="successfully"
   check=$(grep $checkstring $cpout)
-  echo $check
   if [[ $check =~ $checkstring ]]
   then
     echo $t >> $checklistM
+    echo $check
+  else
+    echo "Import failed..."
   fi
 
   # record table and row count
   hbase org.apache.hadoop.hbase.mapreduce.RowCounter $t --starttime=$starttime --endtime=$endtime >$rcoutM 2>&1
-  rowstring="ROWS"
-  rows=$(grep $rowstring $rcout|sed 's/[[:space:]][[:space:]]*//'|cut -d'=' -f2)
+  rowstring="ROWS="
+  rows=$(grep $rowstring $rcoutM|sed 's/[[:space:]][[:space:]]*//'|cut -d'=' -f2)
+  if [[ -z $rows ]]
+  then
+     rows=0
+  fi
   echo $rowstring$rows
   echo "$tmpt,$rows" >>$rclistM
 
