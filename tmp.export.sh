@@ -96,7 +96,6 @@ do
   rclist="${tmpdir}rc.table.list-$1-$2.tmp" # new line seperated rowcount outcome, each line look like: table,100
 
   # check if table export done
-  echo -e "*****START table $t EXPORT*****"
   if [ -f $checklist ]
   then
     echo "checklist $checklist exists"
@@ -105,11 +104,13 @@ do
     echo "checklist $checklist is touched"
   fi
   success=$(grep -w $t $checklist)
-  echo $success
+  
   if [[ $success = $t ]]
   then
     echo "table $t is done, continue with next table"
     continue
+  else
+    echo -e "*****START table $t EXPORT*****"
   fi
 
   hbase org.apache.hadoop.hbase.mapreduce.Export $t $outputdirp$outputdir 1 $starttime $endtime >$expout 2>&1
@@ -117,7 +118,6 @@ do
   #echo $starttime $endtime
   echo "output directory:" $outputdirp$outputdir
   echo $expout
-  echo $rcout
   
   # record table export successful
   checkstring="successfully"
@@ -126,6 +126,9 @@ do
   if [[ $check =~ $checkstring ]]
   then 
     echo $t >> $checklist
+    echo $check
+  else
+    echo "Export failed..."
   fi
   
   # record table row count
@@ -133,7 +136,8 @@ do
   hbase org.apache.hadoop.hbase.mapreduce.RowCounter $t --starttime=$starttime --endtime=$endtime >$rcout 2>&1
   rowstring="ROWS"
   rows=$(grep $rowstring $rcout|sed 's/[[:space:]][[:space:]]*//'|cut -d'=' -f2)
-  echo $rows
+  echo $rcout
+  echo $rowstrings$rows
   if [[ -z $rows ]]
   then
      rows=0
