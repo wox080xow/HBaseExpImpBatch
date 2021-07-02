@@ -39,9 +39,9 @@ else
 fi
 
 # files
-tablelist="${tmpdir}table.list.tmp" # new line seperated tables
-listlist="${tmpdir}list.list.tmp" # hbase shell list output
-desclistfilename="desc.list.tmp"
+tablelist="${tmpdir}table.list-$1-$2.tmp" # new line seperated tables
+listlist="${tmpdir}list.list-$1-$2.tmp" # hbase shell list output
+desclistfilename="desc.list-$1-$2.tmp"
 desclist="${tmpdir}$desclistfilename" # hbase shell desc 'table' output
 desclistfile="/$desclistfilename"
 
@@ -74,12 +74,12 @@ echo "$desclist is created."
 
 
 # send $desclist to cdp hdfs
-discpout="${tmpdir}mr-distcp.out.tmp
+distcpout="${tmpdir}mr-distcp.out.tmp"
 hdfs dfs -put -f $desclist $srcdir
 echo $desclist $srcdir
 hadoop distcp -overwrite $srchdfs$srcdir$desclistfile $desthdfs$destdir >$distcpout 2>&1
 echo $srchdfs$srcdir$desclistfile $desthdfs$destdir
-echo "$desclist is sent to CDP."
+echo "$desclist is sent to CDP at $desthdfs$destdir$desclistfilename."
 
 
 # export batch
@@ -92,8 +92,8 @@ do
   # files
   expout="${tmpdir}mr-$outputdir.out.tmp" # mapreduce.Export output
   rcout="${tmpdir}mr-rc-$name.out.tmp" # mapreduce.RowCount output
-  checklist="${tmpdir}success.table.list.tmp" # new line seperated tables
-  rclist="${tmpdir}rc.table.list.tmp" # new line seperated rowcount outcome, each line look like: table,100
+  checklist="${tmpdir}success.table.list-$1-$2.tmp" # new line seperated tables
+  rclist="${tmpdir}rc.table.list-$1-$2.tmp" # new line seperated rowcount outcome, each line look like: table,100
 
   # check if table export done
   echo -e "*****START table $t EXPORT*****"
@@ -129,13 +129,19 @@ do
   fi
   
   # record table row count
+  # use MapReduce (plan A)
   hbase org.apache.hadoop.hbase.mapreduce.RowCounter $t --starttime=$starttime --endtime=$endtime >$rcout 2>&1
   rowstring="ROWS"
   rows=$(grep $rowstring $rcout|sed 's/[[:space:]][[:space:]]*//'|cut -d'=' -f2)
-  #echo $rows
+  echo $rows
   if [[ -z $rows ]]
   then
      rows=0
   fi
   echo "$t,$rows" >>$rclist
+  
+  # use hbase shell (slow, plan B)
+  #rows=$(echo -e "import org.apache.hadoop.hbase.filter.FirstKeyOnlyFilter;\nscan '$t', {FILTER=>FirstKeyOnlyFilter.new(),TIMERANGE => [$starttime, $endtime]}"|hbase shell -n|grep "row(s)"|cut -d' ' -f1)
+  #echo "$t,$rows" >>$rclist
+  
 done <$tablelist

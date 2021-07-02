@@ -4,13 +4,16 @@ grep -e "^Table" desc.list.tmp|cut -d' ' -f2
 disabletable=""
 droptable=""
 
+tmpdir="OMNI_TMP_FILES/"
+
 # files
-tabletobecreatedlist="tabletobecreated.list.tmp"
-disabletablelist="disabletable.list.tmp"
-droptablelist="droptable.list.tmp"
-tabledisabledlist="tabledisabled.out.list.tmp"
-tabledroppedlist="tabledropped.out.list.tmp"
-desclist="desc.list.tmp"
+tabletobecreatedlist=$tmpdir"tabletobecreated.list.tmp"
+disabletablelist=$tmpdir"disabletable.list.tmp"
+droptablelist=$tmpdir"droptable.list.tmp"
+tabledisabledlist=$tmpdir"tabledisabled.out.list.tmp"
+tabledroppedlist=$tmpdir"tabledropped.out.list.tmp"
+desclist=$tmpdir"desc.list.tmp"
+tablelisttarget=$tmpdir"table.list.
 
 rm -f $disabletablelist $droptablelist
 while read t 
@@ -20,7 +23,8 @@ do
   droptable="drop $tableAd"
   echo $disabletable >>$disabletablelist
   echo $droptable >>$droptablelist
-done <$tabletobecreatedlist
+#done <$tabletobecreatedlist
+done <$tablelisttarget
 
 # disable table through hbase shell
 dtb=""
