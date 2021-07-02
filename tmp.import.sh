@@ -26,19 +26,19 @@ else
 fi
 
 # files
-disabletablelist="${tmpdir}disabletable.list.tmp" # hbase shell disable 'table' input
-droptablelist="${tmpdir}droptable.list.tmp" # habase shell drop 'table' input
-tabledisabledlist="${tmpdir}tabledisabled.out.list.tmp" # hbase shell disable 'talbe' output
-tabledroppedlist="${tmpdir}tabledropped.out.list.tmp" # hbase shell drop 'table' output
+disabletablelist="${tmpdir}disabletable.list-$1-$2.tmp" # hbase shell disable 'table' input
+droptablelist="${tmpdir}droptable.list-$1-$2.tmp" # habase shell drop 'table' input
+tabledisabledlist="${tmpdir}tabledisabled.out.list-$1-$2.tmp" # hbase shell disable 'talbe' output
+tabledroppedlist="${tmpdir}tabledropped.out.list-$1-$2.tmp" # hbase shell drop 'table' output
 
-desclistfilename="desc.list.tmp"
+desclistfilename="desc.list-$1-$2.tmp"
 desclist="${tmpdir}$desclistfilename" # hbase shell desc 'table' output FROM HDP
 desclistfile="/$desclistfilename"
 
-tablelist="${tmpdir}table.list.tmp" # new line seperated tables
-tabletobecreatedlist="${tmpdir}tabletobecreated.list.tmp" # new line seperated tmp tables
-createtablelist="${tmpdir}createtable.list.tmp" # hbase shell create 'table','cf',... input
-tablecreatedlist="${tmpdir}tablecreated.out.list.tmp" # hbase shell create 'table,'cf',... output
+tablelist="${tmpdir}table.list-$1-$2.tmp" # new line seperated tables
+tabletobecreatedlist="${tmpdir}tabletobecreated.list-$1-$2.tmp" # new line seperated tmp tables
+createtablelist="${tmpdir}createtable.list-$1-$2.tmp" # hbase shell create 'table','cf',... input
+tablecreatedlist="${tmpdir}tablecreated.out.list-$1-$2.tmp" # hbase shell create 'table,'cf',... output
 
 # DROP TEMP TABLES
 
@@ -179,8 +179,8 @@ do
   # files
   impout="${tmpdir}mr-imp-$inputdir.out.tmp" # mapreduce.Import output
   rcout="${tmpdir}mr-rc-$name.out.tmp" # mapreduce.RowCount ouput
-  checklist="${tmpdir}success.table.list.tmp" # new line seperated tables
-  rclist="${tmpdir}rc.table.list.tmp" # new line seperated row count outcome, each line look like: table,100
+  checklist="${tmpdir}success.table.list-$1-$2.tmp" # new line seperated tables
+  rclist="${tmpdir}rc.table.list-$1-$2.tmp" # new line seperated row count outcome, each line look like: table,100
 
   echo $t
   echo $tmpt
