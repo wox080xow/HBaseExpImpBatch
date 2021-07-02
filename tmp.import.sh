@@ -164,8 +164,8 @@ echo "Tables above are created."
 # IMPORT BATCH
 
 # variables
-starttime=$(date -d $1 +%s)
-endtime=$(date -d $2 +%s)
+starttime=$(date -d $1 +%s)000
+endtime=$(date -d $2 +%s)000
 #inputdirp="hdfs://isicdp.example.com:8020/tmp/"
 inputdirp="/tmp/"
 

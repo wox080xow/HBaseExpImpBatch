@@ -99,8 +99,8 @@ echo "Tables above are created."
 # MERGE TABLE BATCH
 
 # variables
-starttime=$(date -d $1 +%s)
-endtime=$(date -d $2 +%s)
+starttime=$(date -d $1 +%s)000
+endtime=$(date -d $2 +%s)000
 
 while read t
 do 

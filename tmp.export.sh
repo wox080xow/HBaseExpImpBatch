@@ -17,8 +17,8 @@ fi
 
 # variables
 # for export batch
-starttime=$(date -d $1 +%s)
-endtime=$(date -d $2 +%s)
+starttime=$(date -d $1 +%s)000
+endtime=$(date -d $2 +%s)000
 srchdfs="hdfs://malvin-hdp2-m1.example.com:8020"
 desthdfs="hdfs://malvin-cdp-m1.example.com:8020"
 #outputdirp="hdfs://isicdp.example.com:8020/tmp/"

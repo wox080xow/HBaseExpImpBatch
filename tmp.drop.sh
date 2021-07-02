@@ -13,7 +13,7 @@ droptablelist=$tmpdir"droptable.list.tmp"
 tabledisabledlist=$tmpdir"tabledisabled.out.list.tmp"
 tabledroppedlist=$tmpdir"tabledropped.out.list.tmp"
 desclist=$tmpdir"desc.list.tmp"
-tablelisttarget=$tmpdir"table.list.
+tablelisttarget=$tmpdir"table.list.tmp.target"
 
 rm -f $disabletablelist $droptablelist
 while read t 
