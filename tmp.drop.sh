@@ -1,5 +1,3 @@
-grep -e "^Table" desc.list.tmp|cut -d' ' -f2
-
 # list of drop table line
 disabletable=""
 droptable=""

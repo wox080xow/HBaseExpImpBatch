@@ -35,20 +35,17 @@ createtablelistO="${tmpdir}origin.createtable.list-$1-$2.tmp" # hbase shell crea
 tablecreatedlistO="${tmpdir}origin.tablecreated.out.list-$1-$2.tmp" # hbase shell create 'table,'cf',... output
 tablelistE="${tmpdir}exist.table.list.tmp"
 
+altertablelist="${tmpdir}altertable.list-$1-$2.tmp"
+tablealteredlist="${tmpdir}tablealtered.out.list-$1-$2.tmp"
+
+# CREATE TABLE IF NOT EXISTS
+
 # generate table list in CDP HBase
 echo "list"|hbase shell -n >list.list.tmp
 lines=$(($(($(cat list.list.tmp|wc -l)-3))/2))
 #echo $lines
 cat list.list.tmp|tail -n $lines >$tablelistE
 rm -f list.list.tmp
-
-# CREATE TABLE IF NOT EXISTS
-
-# generate table list in CDP HBase
-#echo "list"|hbase shell -n >list.list.tmp
-#lines=$(($(($(cat list.list.tmp|wc -l)-3))/2))
-#cat list.list.tmp|tail -n $lines >$tablelistO
-#rm -rf list.list.tmp
 
 # list of create table line
 createtable=""
@@ -99,6 +96,14 @@ do
 done <$desclist
 
 # create table through hbase shell
+if [[ -f $createtablelistO ]]
+then
+  echo "$createtablelistO is created"
+else
+  touch $createtablelistO
+  echo "no table to be creared, $createtablelistO is touched"
+fi
+
 ctb=""
 while read l
 do
@@ -109,11 +114,57 @@ done <$createtablelistO
 echo -e $ctb|hbase shell -n >>$tablecreatedlistO
 echo "Tables above are created."
 
+# ALTER TABLE ATTRIBUTES FOR PHOENIX
+
+# generate table list in CDP HBase after origin table created
+echo "list"|hbase shell -n >list.list.tmp
+lines=$(($(($(cat list.list.tmp|wc -l)-3))/2))
+#echo $lines
+cat list.list.tmp|tail -n $lines >$tablelistE
+rm -f list.list.tmp
+
+while read t
+do
+  if [[ $t =~ "SYSTEM" ]]
+  then
+    echo "table $t is PHOENIX system talbe"
+  elif [[ $t =~ "OMNI_TMP" ]]
+  then
+    echo "table $t is tmp table"
+  else
+    echo "alter '$t', ..."
+    echo "alter '$t', 'coprocessor$1' => '|org.apache.phoenix.coprocessor.ScanRegionObserver|805306366|', 'coprocessor$2' => '|org.apache.phoenix.coprocessor.UngroupedAggregateRegionObserver|805306366|', 'coprocessor$3' => '|org.apache.phoenix.coprocessor.GroupedAggregateRegionObserver|805306366|', 'coprocessor$4' => '|org.apache.phoenix.coprocessor.ServerCachingEndpointImpl|805306366|', 'coprocessor$5' => '|org.apache.phoenix.hbase.index.IndexRegionObserver|805306366|index.builder=org.apache.phoenix.index.PhoenixIndexBuilder,org.apache.hadoop.hbase.index.codec.class=org.apache.phoenix.index.PhoenixIndexCodec', 'coprocessor$6' => '|org.apache.phoenix.coprocessor.PhoenixTTLRegionObserver|805306364|'" >>$altertablelist
+  fi
+done <$tablelistE
+
+# alter table through hbase shell
+atb=""
+while read l
+do
+  ata=$l
+  atb=$atb"\n"$ata
+done <$altertablelist
+
+echo -e $atb|hbase shell -n >>$tablealteredlist
+echo "Tables above are altered."
+
 # MERGE TABLE BATCH
 
 # variables
 starttime=$(date -d $1 +%s)000
 endtime=$(date -d $2 +%s)000
+
+# files
+checklistM="${tmpdir}merge.success.table.list-$1-$2.tmp" # new line seperated tables
+
+echo "START TABLE MERGE"
+if [[ -f $checklistM ]]
+then
+  echo "checklist exists"
+else
+  touch $checklistM
+  echo "checklist $checklistM is touched"
+fi
 
 while read t
 do 
@@ -121,20 +172,11 @@ do
   tmpt="${t}_OMNI_TMP"
 
   # files
-  cpout="${tmpdir}mr-cp-$tmpt.out.tmp" # mapreduce.CopyTable output
-  rcoutM="${tmpdir}merge.mr-rc-$t-$sarttime-$endtime.out.tmp" # mapreduce.RowCount ouput
-  checklistM="${tmpdir}merge.success.table.list-$1-$2.tmp" # new line seperated tables
+  cpout="${tmpdir}mr-cp-$tmpt.out-$1-$2.tmp" # mapreduce.CopyTable output
+  rcoutM="${tmpdir}merge.mr-rc-$t-$1-$2.out.tmp" # mapreduce.RowCount ouput
   rclistM="${tmpdir}merge.rc.table.list-$1-$2.tmp" # new line seperated row count outcome, each line look like: table,100
 
-  # check if table import done
-  echo "START table $tmpt IMPORT"
-  if [[ -f $checklistM ]]
-  then
-    echo "checklist exists"
-  else
-    touch $checklistM
-    echo "checklist $checklistM is touched"
-  fi
+  # check if table merge done
   success=$(grep -w $t $checklistM)
   echo $success
   if [[ $success = $t ]]
