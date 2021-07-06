@@ -1,6 +1,7 @@
 tablelistE="OMNI_TMP_FILES/exist.table.list.tmp"
 
-desclist="desc.list.tmp.target"
+#desclist="desc.list.tmp.target"
+desclist="OMNI_TMP_FILES/desc.list-210501-210701.tmp"
 tabletobealteredlist="tablatobealtered.list.tmp"
 altertablelist="altertable.list.tmp"
 
@@ -39,12 +40,19 @@ do
   if [[ $l =~ $schema ]]
   then
     schemaA=$(echo $l|sed -e "s/$tableA, {TABLE_ATTRIBUTES => {//;s/}$//;s/coprocessor\$[0-9]/'&'/g;s/METADATA/'&'/")
-    echo $schemaA
-    altertable="$altertable, $schemaA" 
-    echo "^^^this is schema^^^"
-    #echo -e "\n*****altertable string:\n$altertable\n"
+    altertable="$altertable, $schemaA"
+    if [[ $schemaA =~ "coprocessor" ]] && [[ $altertable =~ $schema ]]
+    then
+      echo $schemaA
+      echo "^^^this is schema^^^"
+      altertable="$altertable, $schemaA"
+      #echo -e "\n*****altertable string:\n$altertable\n"
+    else
+      altertable=""
+    fi
     continue
   fi
+
   if [[ $l = "nil" ]]
   then
     echo $altertable >>$altertablelist

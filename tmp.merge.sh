@@ -19,7 +19,7 @@ fi
 tmpdir="OMNI_TMP_FILES/"
 if [[ -d $tmpdir ]]
 then
-  echo "directory $tmpdir for tmp files is exist"
+  echo "directory $tmpdir for tmp files exists"
 else
   mkdir $tmpdir
   echo "directory $tmpdir for tmp files is created"
@@ -36,6 +36,7 @@ tablecreatedlistO="${tmpdir}origin.tablecreated.out.list-$1-$2.tmp" # hbase shel
 tablelistE="${tmpdir}exist.table.list.tmp"
 
 altertablelist="${tmpdir}altertable.list-$1-$2.tmp"
+tabletobealteredlist="${tmpdir}tablatobealtered.list-$1-$2.tmp"
 tablealteredlist="${tmpdir}tablealtered.out.list-$1-$2.tmp"
 
 # CREATE TABLE IF NOT EXISTS
@@ -68,7 +69,7 @@ do
     echo $tableA >>$tabletobecreatedlistO
     #echo $tableC
     createtable="create $tableC"
-    echo $createtable
+    #echo $createtable
     #echo -e "\n*****createtable string:\n$createtable\n"
   fi
 
@@ -88,6 +89,7 @@ do
       echo "$tableA exists"
     else
       echo $createtable >>$createtablelistO
+      echo $createtable
     fi
     createtable=""
     #echo 'the end of desc'
@@ -117,25 +119,80 @@ echo "Tables above are created."
 # ALTER TABLE ATTRIBUTES FOR PHOENIX
 
 # generate table list in CDP HBase after origin table created
-echo "list"|hbase shell -n >list.list.tmp
-lines=$(($(($(cat list.list.tmp|wc -l)-3))/2))
+#echo "list"|hbase shell -n >list.list.tmp
+#lines=$(($(($(cat list.list.tmp|wc -l)-3))/2))
 #echo $lines
-cat list.list.tmp|tail -n $lines >$tablelistE
-rm -f list.list.tmp
+#cat list.list.tmp|tail -n $lines >$tablelistE
+#rm -f list.list.tmp
 
-while read t
+#while read t
+#do
+#  if [[ $t =~ "SYSTEM" ]]
+#  then
+#    echo "table $t is PHOENIX system talbe"
+#  elif [[ $t =~ "OMNI_TMP" ]]
+#  then
+#    echo "table $t is tmp table"
+#  else
+#    echo "alter '$t', ..."
+#    echo "alter '$t', 'coprocessor$1' => '|org.apache.phoenix.coprocessor.ScanRegionObserver|805306366|', 'coprocessor$2' => '|org.apache.phoenix.coprocessor.UngroupedAggregateRegionObserver|805306366|', 'coprocessor$3' => '|org.apache.phoenix.coprocessor.GroupedAggregateRegionObserver|805306366|', 'coprocessor$4' => '|org.apache.phoenix.coprocessor.ServerCachingEndpointImpl|805306366|', 'coprocessor$5' => '|org.apache.phoenix.hbase.index.IndexRegionObserver|805306366|index.builder=org.apache.phoenix.index.PhoenixIndexBuilder,org.apache.hadoop.hbase.index.codec.class=org.apache.phoenix.index.PhoenixIndexCodec', 'coprocessor$6' => '|org.apache.phoenix.coprocessor.PhoenixTTLRegionObserver|805306364|'" >>$altertablelist
+#  fi
+#done <$tablelistE
+
+tableA=""
+while read l
 do
-  if [[ $t =~ "SYSTEM" ]]
+  table="Table"
+  schema=$tableA
+  #echo "**********"
+  #echo $l
+  #echo "**********"
+  #echo -e "\n*****altertable string:\n$altertable\n"
+  if [[ $l =~ $table ]]
   then
-    echo "table $t is PHOENIX system talbe"
-  elif [[ $t =~ "OMNI_TMP" ]]
-  then
-    echo "table $t is tmp table"
-  else
-    echo "alter '$t', ..."
-    echo "alter '$t', 'coprocessor$1' => '|org.apache.phoenix.coprocessor.ScanRegionObserver|805306366|', 'coprocessor$2' => '|org.apache.phoenix.coprocessor.UngroupedAggregateRegionObserver|805306366|', 'coprocessor$3' => '|org.apache.phoenix.coprocessor.GroupedAggregateRegionObserver|805306366|', 'coprocessor$4' => '|org.apache.phoenix.coprocessor.ServerCachingEndpointImpl|805306366|', 'coprocessor$5' => '|org.apache.phoenix.hbase.index.IndexRegionObserver|805306366|index.builder=org.apache.phoenix.index.PhoenixIndexBuilder,org.apache.hadoop.hbase.index.codec.class=org.apache.phoenix.index.PhoenixIndexCodec', 'coprocessor$6' => '|org.apache.phoenix.coprocessor.PhoenixTTLRegionObserver|805306364|'" >>$altertablelist
+    tableA=$(echo $l|cut -d' ' -f2)
+
+    # differ system table and tmp table
+    if [[ $tableA =~ "SYSTEM" ]]
+    then
+      echo "table $tableA is PHOENIX system talbe"
+      continue
+    elif [[ $tableA =~ "OMNI_TMP" ]]
+    then
+      echo "table $tableA is tmp table"
+      continue
+    fi
+
+    tableC=$(echo $tableA|sed "s/^/\'/;s/$/\'/")
+    echo $tableA >>$tabletobealteredlist
+    echo $tableC
+    echo '^^^this is table^^^'
+    altertable="alter $tableC"
+    #echo -e "\n*****altertable string:\n$altertable\n"
+    continue
   fi
-done <$tablelistE
+  if [[ $l =~ $schema ]]
+  then
+    schemaA=$(echo $l|sed -e "s/$tableA, {TABLE_ATTRIBUTES => {//;s/}$//;s/coprocessor\$[0-9]/'&'/g;s/METADATA/'&'/")
+    altertable="$altertable, $schemaA"
+    if [[ $schemaA =~ "coprocessor" ]] && [[ $altertable =~ $schema ]]
+    then
+      echo $schemaA
+      echo "^^^this is schema^^^"
+      altertable="$altertable, $schemaA"
+      #echo -e "\n*****altertable string:\n$altertable\n"
+    else
+      altertable=""
+    fi
+    continue
+  fi
+  if [[ $l = "nil" ]]
+  then
+    echo $altertable >>$altertablelist
+    altertable=""
+    #echo 'the end of desc'
+  fi
+done <$desclist
 
 # alter table through hbase shell
 atb=""
