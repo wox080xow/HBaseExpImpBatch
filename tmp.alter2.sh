@@ -1,7 +1,8 @@
 tablelistE="OMNI_TMP_FILES/exist.table.list.tmp"
 
 #desclist="desc.list.tmp.target"
-desclist="OMNI_TMP_FILES/desc.list-210501-210701.tmp"
+#desclist="OMNI_TMP_FILES/desc.list-210501-210701.tmp"
+desclist="desc.list"
 tabletobealteredlist="tablatobealtered.list.tmp"
 altertablelist="altertable.list.tmp"
 
