@@ -214,7 +214,7 @@ endtime=$(date -d $2 +%s)000
 # files
 checklistM="${tmpdir}merge.success.table.list-$1-$2.tmp" # new line seperated tables
 
-echo "START TABLE MERGE"
+echo -e "##########\n#START TABLE MERGE\n##########"
 if [[ -f $checklistM ]]
 then
   echo "checklist exists"
@@ -241,7 +241,7 @@ do
     echo "table $t is done, continue with next table"
     continue
   else
-    echo "START table $t and $tmpt MERGE"
+    echo "*****START table $t and $tmpt MERGE*****"
   fi
 
   # merge 
@@ -256,7 +256,7 @@ do
     echo $t >> $checklistM
     echo $check
   else
-    echo "Import failed..."
+    echo "Merge failed..."
   fi
 
   # record table and row count

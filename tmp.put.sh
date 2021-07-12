@@ -19,7 +19,7 @@ function putloop() {
   endrow=$((k*10))
   for i in $(seq $startrow $endrow)
   do
-    putvalueline="put '$1','$i','$2:c1','value$i',$3"
+    putvalueline="put '$1','$i','$2:C1','value$i',$3"
     putvalue="$putvalue\n$putvalueline"
   done
   echo $putvalue

@@ -82,7 +82,20 @@ echo $srchdfs$srcdir$desclistfile $desthdfs$destdir
 echo "$desclist is sent to CDP at $desthdfs$destdir$desclistfilename."
 
 
-# export batch
+# EXPORT BATCH
+
+# files
+checklist="${tmpdir}success.table.list-$1-$2.tmp" # new line seperated tables
+
+echo -e "##########\n#START TABLE EXPORT\n##########"
+if [[ -f $checklist ]]
+then
+  echo "checklist exists"
+else
+  touch $checklist
+  echo "checklist $checklist is touched"
+fi
+
 while read t
 do
   # variables
@@ -92,19 +105,10 @@ do
   # files
   expout="${tmpdir}mr-$outputdir.out.tmp" # mapreduce.Export output
   rcout="${tmpdir}mr-rc-$name.out.tmp" # mapreduce.RowCount output
-  checklist="${tmpdir}success.table.list-$1-$2.tmp" # new line seperated tables
   rclist="${tmpdir}rc.table.list-$1-$2.tmp" # new line seperated rowcount outcome, each line look like: table,100
 
   # check if table export done
-  if [ -f $checklist ]
-  then
-    echo "checklist $checklist exists"
-  else
-    touch $checklist
-    echo "checklist $checklist is touched"
-  fi
   success=$(grep -w $t $checklist)
-  
   if [[ $success = $t ]]
   then
     echo "table $t is done, continue with next table"
@@ -137,7 +141,7 @@ do
   rowstring="ROWS"
   rows=$(grep $rowstring $rcout|sed 's/[[:space:]][[:space:]]*//'|cut -d'=' -f2)
   echo $rcout
-  echo $rowstrings$rows
+  echo $rowstring"="$rows
   if [[ -z $rows ]]
   then
      rows=0

@@ -169,6 +169,18 @@ endtime=$(date -d $2 +%s)000
 #inputdirp="hdfs://isicdp.example.com:8020/tmp/"
 inputdirp="/tmp/"
 
+# files
+checklist="${tmpdir}success.table.list-$1-$2.tmp" # new line seperated tables
+
+echo -e "##########\n#START TABLE IMPORT\n##########"
+if [[ -f $checklist ]]
+then
+  echo "checklist exists"
+else
+  touch $checklist
+  echo "checklist $checklist is touched"
+fi
+
 while read t
 do
   # variables
@@ -179,22 +191,12 @@ do
   # files
   impout="${tmpdir}mr-imp-$inputdir.out.tmp" # mapreduce.Import output
   rcout="${tmpdir}mr-rc-$name.out.tmp" # mapreduce.RowCount ouput
-  checklist="${tmpdir}success.table.list-$1-$2.tmp" # new line seperated tables
   rclist="${tmpdir}rc.table.list-$1-$2.tmp" # new line seperated row count outcome, each line look like: table,100
 
   echo $t
   echo $tmpt
 
-  # check if table import done (testing...
-  echo "START table $tmpt IMPORT"
-  if [ -f $checklist ]
-  then
-    echo "checklist exists"
-  else
-    touch $checklist
-    echo "checklist $checklist is touched"
-  fi
-
+  # check if table import done
   success=$(grep -w $tmpt $checklist)
   echo $success
   if [[ $success = $tmpt ]]
@@ -202,7 +204,7 @@ do
     echo "table $tmpt is done, continue with next table"
     continue
   else  
-    echo "START table $tmpt IMPORT"
+    echo "*****START table $tmpt IMPORT*****"
   fi
 
   # import table
