@@ -193,8 +193,8 @@ do
   rcout="${tmpdir}mr-rc-$name.out.tmp" # mapreduce.RowCount ouput
   rclist="${tmpdir}rc.table.list-$1-$2.tmp" # new line seperated row count outcome, each line look like: table,100
 
-  echo $t
-  echo $tmpt
+  #echo $t
+  #echo $tmpt
 
   # check if table import done
   success=$(grep -w $tmpt $checklist)
@@ -209,10 +209,9 @@ do
 
   # import table
   hbase org.apache.hadoop.hbase.mapreduce.Import $tmpt $inputdirp$inputdir >$impout 2>&1
-  echo $starttime $endtime
-  echo $inputdirp$inputdir
+  #echo $starttime $endtime
+  #echo $inputdirp$inputdir
   echo $impout
-  echo $rcout
 
   # record table import successful
   checkstring="successfully"
@@ -227,6 +226,7 @@ do
 
   # record table and row count
   hbase org.apache.hadoop.hbase.mapreduce.RowCounter $tmpt --starttime=$starttime --endtime=$endtime >$rcout 2>&1
+  echo $rcout
   rowstring="ROWS="
   rows=$(grep $rowstring $rcout|sed 's/[[:space:]][[:space:]]*//'|cut -d'=' -f2)
   if [[ -z $rows ]]
