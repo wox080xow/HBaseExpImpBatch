@@ -19,7 +19,7 @@ fi
 tmpdir="OMNI_TMP_FILES/"
 if [[ -d $tmpdir ]]
 then
-  echo "directory $tmpdir for tmp files is exist"
+  echo "directory $tmpdir for tmp files exists"
 else
   mkdir $tmpdir
   echo "directory $tmpdir for tmp files is created"
@@ -107,7 +107,7 @@ destdir="/tmp"
 hdfs dfs -get -f $destdir$desclistfile $tmpdir
 
 rm -f $tablelist $createtablelist $tabletobecreatedlist
-echo "tmp files $tablelist $createtablelist $tabletobecreatedlist"
+echo "tmp files $tablelist $createtablelist $tabletobecreatedlist are removed"
 while read l
 do
   table="Table"
@@ -172,7 +172,7 @@ inputdirp="/tmp/"
 # files
 checklist="${tmpdir}success.table.list-$1-$2.tmp" # new line seperated tables
 
-echo -e "##########\n#START TABLE IMPORT\n##########"
+echo -e "\n####################\n#\n#START TABLE IMPORT\n#\n####################\n"
 if [[ -f $checklist ]]
 then
   echo "checklist exists"
@@ -204,7 +204,7 @@ do
     echo "table $tmpt is done, continue with next table"
     continue
   else  
-    echo "*****START table $tmpt IMPORT*****"
+    echo -e "\n*****START table $tmpt IMPORT*****"
   fi
 
   # import table

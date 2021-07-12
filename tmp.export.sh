@@ -32,7 +32,7 @@ destdir="/tmp"
 tmpdir="OMNI_TMP_FILES/"
 if [[ -d $tmpdir ]]
 then
-  echo "directory $tmpdir for tmp files is exist"
+  echo "directory $tmpdir for tmp files exists"
 else
   mkdir $tmpdir
   echo "directory $tmpdir for tmp files is created"
@@ -48,7 +48,7 @@ desclistfile="/$desclistfilename"
 # generate table list
 if [[ -f $tablelist ]]
 then
-  echo "$tablelist is existed, remove old tmp file"
+  echo "$tablelist exists, remove old tmp file"
   rm -rf $tablelist
 fi
 echo "list"|hbase shell -n >$listlist
@@ -69,6 +69,12 @@ do
 done <$tablelist
 #rm -rf $tablelist
 
+if [[ -f $desclist ]]
+then
+  echo "$desclist exists, remove old tmp file"
+  rm -rf $desclist
+fi
+
 echo -e $descline|hbase shell -n >>$desclist
 echo "$desclist is created."
 
@@ -87,7 +93,7 @@ echo "$desclist is sent to CDP at $desthdfs$destdir$desclistfilename."
 # files
 checklist="${tmpdir}success.table.list-$1-$2.tmp" # new line seperated tables
 
-echo -e "##########\n#START TABLE EXPORT\n##########"
+echo -e "\n####################\n#\n#START TABLE EXPORT\n#\n####################\n"
 if [[ -f $checklist ]]
 then
   echo "checklist exists"
@@ -114,7 +120,7 @@ do
     echo "table $t is done, continue with next table"
     continue
   else
-    echo -e "*****START table $t EXPORT*****"
+    echo -e "\n*****START table $t EXPORT*****"
   fi
 
   hbase org.apache.hadoop.hbase.mapreduce.Export $t $outputdirp$outputdir 1 $starttime $endtime >$expout 2>&1
@@ -138,14 +144,14 @@ do
   # record table row count
   # use MapReduce (plan A)
   hbase org.apache.hadoop.hbase.mapreduce.RowCounter $t --starttime=$starttime --endtime=$endtime >$rcout 2>&1
-  rowstring="ROWS"
+  rowstring="ROWS="
   rows=$(grep $rowstring $rcout|sed 's/[[:space:]][[:space:]]*//'|cut -d'=' -f2)
   echo $rcout
-  echo $rowstring"="$rows
   if [[ -z $rows ]]
   then
      rows=0
   fi
+  echo $rowstring$rows
   echo "$t,$rows" >>$rclist
   
   # use hbase shell (slow, plan B)

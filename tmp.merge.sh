@@ -214,7 +214,7 @@ endtime=$(date -d $2 +%s)000
 # files
 checklistM="${tmpdir}merge.success.table.list-$1-$2.tmp" # new line seperated tables
 
-echo -e "##########\n#START TABLE MERGE\n##########"
+echo -e "####################\n#\n#START TABLE MERGE\n#\n####################"
 if [[ -f $checklistM ]]
 then
   echo "checklist exists"
@@ -241,7 +241,7 @@ do
     echo "table $t is done, continue with next table"
     continue
   else
-    echo "*****START table $t and $tmpt MERGE*****"
+    echo -e "\n*****START table $t and $tmpt MERGE*****"
   fi
 
   # merge 
