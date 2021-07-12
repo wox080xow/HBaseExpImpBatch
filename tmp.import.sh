@@ -198,7 +198,7 @@ do
 
   # check if table import done
   success=$(grep -w $tmpt $checklist)
-  echo $success
+  #echo $success
   if [[ $success = $tmpt ]]
   then
     echo "table $tmpt is done, continue with next table"

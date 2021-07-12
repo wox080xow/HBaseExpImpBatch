@@ -82,9 +82,9 @@ echo "$desclist is created."
 # send $desclist to cdp hdfs
 distcpout="${tmpdir}mr-distcp.out.tmp"
 hdfs dfs -put -f $desclist $srcdir
-echo $desclist $srcdir
+#echo $desclist $srcdir
 hadoop distcp -overwrite $srchdfs$srcdir$desclistfile $desthdfs$destdir >$distcpout 2>&1
-echo $srchdfs$srcdir$desclistfile $desthdfs$destdir
+#echo $srchdfs$srcdir$desclistfile $desthdfs$destdir
 echo "$desclist is sent to CDP at $desthdfs$destdir$desclistfilename."
 
 
