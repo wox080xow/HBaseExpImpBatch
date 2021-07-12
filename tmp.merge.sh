@@ -103,7 +103,7 @@ then
   echo "$createtablelistO is created"
 else
   touch $createtablelistO
-  echo "no table to be creared, $createtablelistO is touched"
+  echo "no table to be created, $createtablelistO is touched"
 fi
 
 ctb=""
