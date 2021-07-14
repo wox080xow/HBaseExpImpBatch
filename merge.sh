@@ -3,6 +3,31 @@ function usage() {
    exit 1
 }
 
+function maketmpdir() {
+  if [[ -d $* ]]
+  then
+  echo "directory $* for tmp files exists"
+  else
+  mkdir $*
+  echo "directory $* for tmp files is created"
+  fi
+}
+
+function banner() {
+  echo ""
+  echo "##################################################################################"
+  echo "##"
+  echo "## $*"
+  echo "##"
+  echo "##################################################################################"
+  echo ""
+}
+
+function phase() {
+  echo ""
+  echo "*****$******"
+}
+
 if [[ -z $1 ]]
 then
   usage
@@ -17,13 +42,7 @@ fi
 
 # dir for tmp files
 tmpdir="OMNI_TMP_FILES/"
-if [[ -d $tmpdir ]]
-then
-  echo "directory $tmpdir for tmp files exists"
-else
-  mkdir $tmpdir
-  echo "directory $tmpdir for tmp files is created"
-fi
+maketmpdir $tmpdir
 
 # files
 desclist="${tmpdir}desc.list-$1-$2.tmp" # hbase shell desc 'table' output from HDP
@@ -116,29 +135,6 @@ done <$createtablelistO
 echo -e $ctb|hbase shell -n >>$tablecreatedlistO
 echo "Tables above are created."
 
-# ALTER TABLE ATTRIBUTES FOR PHOENIX
-
-# generate table list in CDP HBase after origin table created
-#echo "list"|hbase shell -n >list.list.tmp
-#lines=$(($(($(cat list.list.tmp|wc -l)-3))/2))
-#echo $lines
-#cat list.list.tmp|tail -n $lines >$tablelistE
-#rm -f list.list.tmp
-
-#while read t
-#do
-#  if [[ $t =~ "SYSTEM" ]]
-#  then
-#    echo "table $t is PHOENIX system talbe"
-#  elif [[ $t =~ "OMNI_TMP" ]]
-#  then
-#    echo "table $t is tmp table"
-#  else
-#    echo "alter '$t', ..."
-#    echo "alter '$t', 'coprocessor$1' => '|org.apache.phoenix.coprocessor.ScanRegionObserver|805306366|', 'coprocessor$2' => '|org.apache.phoenix.coprocessor.UngroupedAggregateRegionObserver|805306366|', 'coprocessor$3' => '|org.apache.phoenix.coprocessor.GroupedAggregateRegionObserver|805306366|', 'coprocessor$4' => '|org.apache.phoenix.coprocessor.ServerCachingEndpointImpl|805306366|', 'coprocessor$5' => '|org.apache.phoenix.hbase.index.IndexRegionObserver|805306366|index.builder=org.apache.phoenix.index.PhoenixIndexBuilder,org.apache.hadoop.hbase.index.codec.class=org.apache.phoenix.index.PhoenixIndexCodec', 'coprocessor$6' => '|org.apache.phoenix.coprocessor.PhoenixTTLRegionObserver|805306364|'" >>$altertablelist
-#  fi
-#done <$tablelistE
-
 tableA=""
 while read l
 do
@@ -214,7 +210,7 @@ endtime=$(date -d $2 +%s)000
 # files
 checklistM="${tmpdir}merge.success.table.list-$1-$2.tmp" # new line seperated tables
 
-echo -e "\n####################\n#\n#START TABLE MERGE\n#\n####################\n"
+banner "START TABLE MERGE"
 if [[ -f $checklistM ]]
 then
   echo "checklist exists"
@@ -235,13 +231,12 @@ do
 
   # check if table merge done
   success=$(grep -w $t $checklistM)
-  echo $success
   if [[ $success = $t ]]
   then
     echo "table $t is done, continue with next table"
     continue
   else
-    echo -e "\n*****START table $t and $tmpt MERGE*****"
+    phase "START table $t and $tmpt MERGE"
   fi
 
   # merge 
@@ -256,7 +251,7 @@ do
     echo $t >> $checklistM
     echo $check
   else
-    echo "Merge failed..."
+    echo "$t Merge failed..."
   fi
 
   # record table and row count
@@ -267,7 +262,7 @@ do
   then
      rows=0
   fi
-  echo $rowstring$rows
+  phase "table $t $rowstring$rows"
   echo "$tmpt,$rows" >>$rclistM
 
 done <$tablelist

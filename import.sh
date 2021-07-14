@@ -3,6 +3,31 @@ function usage() {
    exit 1
 }
 
+function maketmpdir() {
+  if [[ -d $* ]]
+  then
+  echo "directory $* for tmp files exists"
+  else
+  mkdir $*
+  echo "directory $* for tmp files is created"
+  fi
+}
+
+function banner() {
+  echo ""
+  echo "##################################################################################"
+  echo "##"
+  echo "## $*"
+  echo "##"
+  echo "##################################################################################"
+  echo ""
+}
+
+function phase() {
+  echo ""
+  echo "*****$******"
+}
+
 if [[ -z $1 ]]
 then
   usage
@@ -17,13 +42,7 @@ fi
 
 # dir for tmp files
 tmpdir="OMNI_TMP_FILES/"
-if [[ -d $tmpdir ]]
-then
-  echo "directory $tmpdir for tmp files exists"
-else
-  mkdir $tmpdir
-  echo "directory $tmpdir for tmp files is created"
-fi
+maketmpdir $tmpdir
 
 # files
 disabletablelist="${tmpdir}disabletable.list-$1-$2.tmp" # hbase shell disable 'table' input
@@ -172,7 +191,7 @@ inputdirp="/tmp/"
 # files
 checklist="${tmpdir}success.table.list-$1-$2.tmp" # new line seperated tables
 
-echo -e "\n####################\n#\n#START TABLE IMPORT\n#\n####################\n"
+banner "START TABLE IMPORT"
 if [[ -f $checklist ]]
 then
   echo "checklist exists"
@@ -204,24 +223,30 @@ do
     echo "table $tmpt is done, continue with next table"
     continue
   else  
-    echo -e "\n*****START table $tmpt IMPORT*****"
+    phase "START table $tmpt IMPORT"
   fi
 
   # import table
-  hbase org.apache.hadoop.hbase.mapreduce.Import $tmpt $inputdirp$inputdir >$impout 2>&1
-  #echo $starttime $endtime
-  #echo $inputdirp$inputdir
-  echo $impout
-
-  # record table import successful
-  checkstring="successfully"
-  check=$(grep $checkstring $impout)
-  if [[ $check =~ $checkstring ]]
+  filecheckstring="No such file or directory"
+  filecheck=$(hdfs dfs -ls $inputdirp$inputdir)
+  
+  if [[ $filecheck =~ $filecheckstring ]]
   then
-    echo $tmpt >> $checklist
-    echo $check
+    echo "No $inputdirp$inputdir, $t Import failed..."
   else
-    echo "Import failed..."
+    hbase org.apache.hadoop.hbase.mapreduce.Import $tmpt $inputdirp$inputdir >$impout 2>&1
+    echo $impout
+
+    # record table import successful
+    checkstring="successfully"
+    check=$(grep $checkstring $impout)
+    if [[ $check =~ $checkstring ]]
+    then
+      echo $tmpt >> $checklist
+      echo $tmpt $check
+    else
+      echo "$t Import failed..."
+    fi
   fi
 
   # record table and row count
@@ -233,7 +258,7 @@ do
   then
      rows=0
   fi
-  echo $rowstring$rows
+  phase "table $tmpt $rowstring$rows"
   echo "$tmpt,$rows" >>$rclist
 
 done <$tablelist
