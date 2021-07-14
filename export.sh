@@ -1,18 +1,37 @@
 function usage() {
-   echo -e "Usage:  sh $0 starttime endtime\n\te.g.\n\tsh $0 210601 210630"
-   exit 1
+  echo -e "Usage:  sh $0 starttime endtime\n\te.g.\n\tsh $0 210601 210630"
+  exit 1
+}
+
+function banner() {
+   echo "##################################################################################"
+   echo "## $*"
+   echo "##################################################################################"
+}
+
+function maketmpdir() {
+  if [[ -d $* ]]
+  then
+  echo "directory $* for tmp files exists"
+  else
+  mkdir $*
+  echo "directory $* for tmp files is created"
+  fi
+}
+
+function phase() {
+  echo ""
+  echo "*****$******"
 }
 
 if [[ -z $1 ]]
 then
   usage
-  exit 1
 fi
 
 if [[ -z $2 ]]
 then
   usage
-  exit 1
 fi
 
 # variables
@@ -30,13 +49,7 @@ destdir="/tmp"
 
 # dir for tmp files
 tmpdir="OMNI_TMP_FILES/"
-if [[ -d $tmpdir ]]
-then
-  echo "directory $tmpdir for tmp files exists"
-else
-  mkdir $tmpdir
-  echo "directory $tmpdir for tmp files is created"
-fi
+maketmpdir $tmpdir
 
 # files
 tablelist="${tmpdir}table.list-$1-$2.tmp" # new line seperated tables
@@ -93,7 +106,7 @@ echo "$desclist is sent to CDP at $desthdfs$destdir$desclistfilename."
 # files
 checklist="${tmpdir}success.table.list-$1-$2.tmp" # new line seperated tables
 
-echo -e "\n####################\n#\n#START TABLE EXPORT\n#\n####################\n"
+banner "START TABLE EXPORT"
 if [[ -f $checklist ]]
 then
   echo "checklist exists"
@@ -120,7 +133,7 @@ do
     echo "table $t is done, continue with next table"
     continue
   else
-    echo -e "\n*****START table $t EXPORT*****"
+    phase "START table $t EXPORT"
   fi
 
   hbase org.apache.hadoop.hbase.mapreduce.Export $t $outputdirp$outputdir 1 $starttime $endtime >$expout 2>&1
@@ -132,7 +145,6 @@ do
   # record table export successful
   checkstring="successfully"
   check=$(grep $checkstring $expout)
-  echo $check
   if [[ $check =~ $checkstring ]]
   then 
     echo $t >> $checklist
