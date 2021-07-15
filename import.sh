@@ -230,7 +230,7 @@ do
   filecheckstring="No such file or directory"
   filecheck=$(hdfs dfs -ls $inputdirp$inputdir)
   
-  if [[ $filecheck =~ $filecheckstring ]]
+  if [[ $filecheckstring =~ $filecheck ]]
   then
     echo "No $inputdirp$inputdir, $t Import failed..."
   else

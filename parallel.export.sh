@@ -174,7 +174,7 @@ do
   rcout="${tmpdir}mr-rc-$name.out.tmp" # mapreduce.RowCount output
   rclist="${tmpdir}rc.table.list-$1-$2.tmp" # new line seperated rowcount outcome, each line look like: table,100
 
-  if [ $n -lt 3 ]
+  if [ $n -lt 5 ]
   then
     # banner "batch"$n"/3"
     exp && rc &
