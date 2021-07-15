@@ -67,7 +67,8 @@ fi
 echo "list"|hbase shell -n >$listlist
 lines=$(($(($(cat $listlist|wc -l)-3))/2))
 #echo $lines
-cat $listlist|tail -n $lines >$tablelist
+#cat $listlist|tail -n $lines >$tablelist
+cat $listlist|tail -n $lines|grep -v "TEMP\." >$tablelist
 if [[ -f $tablelist ]]
 then
   echo "$tablelist is created"
