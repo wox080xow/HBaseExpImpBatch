@@ -86,8 +86,8 @@ while read t
 do
   tableAd=$(echo $t|sed "s/^/\'/;s/$/\'/")
   disabletable="disable $tableAd"
-  droptable="drop $tableAd"
   echo $disabletable >>$disabletablelist
+  droptable="drop $tableAd"
   echo $droptable >>$droptablelist
 done <$tabletobecreatedlist
 
@@ -115,7 +115,6 @@ echo -e $dtb
 echo -e $dtb|hbase shell -n >>$tabledroppedlist
 echo "Tables above are dropped."
 
-
 # CREATE TEMP TABLE
 
 # list of create table line
@@ -132,16 +131,17 @@ echo "tmp files $tablelist $createtablelist $tabletobecreatedlist are removed"
 while read l
 do
   table="Table"
-  disabledstring="DISABLED"
+  enabledstring="ENABLED"
   # exclude disabled table
   if [[ $l =~ $table ]]
   then
-    tableA=$(echo $l|cut -d' ' -f2)
-    if [[ $l =~ $disabledstring ]]
+    tableAl=$(echo $l|cut -d' ' -f2)
+    if [[ $l =~ $enabledstring ]]
     then
-      echo "table $tableA is disabled"
+      echo "table $tableAl is an enabled table from src"
+      echo $tableAl >>$tablelist
     else
-      echo $tableA >>$tablelist
+      echo "table $tableAl is a disabled table from src"
     fi
   fi
 done <$desclist
@@ -153,43 +153,36 @@ while read l
 do
   table="Table"
   cf="NAME =>"
-  #echo $l
-  #echo -e "\n*****createtable string:\n$createtable\n"
 
   # deal with table name
   if [[ $l =~ $table ]]
   then
     tableA=$(echo $l|cut -d' ' -f2)
-    tableB="${tableA}_OMNI_TMP"
-    tableC=$(echo $tableB|sed "s/^/\'/;s/$/\'/")
-    #echo $tableA >>$tablelist
-    echo $tableB >>$tabletobecreatedlist
-    #echo $tableC
-    #echo 'this is table'
-    createtable="create $tableC"
-    echo $createtable
-    #echo -e "\n*****createtable string:\n$createtable\n"
+    if [[ $(cat $tablelist) =~ $tableA ]]
+    then
+      tableB="${tableA}_OMNI_TMP"
+      tableC=$(echo $tableB|sed "s/^/\'/;s/$/\'/")
+      echo $tableB >>$tabletobecreatedlist
+      createtable="create $tableC"
+      echo $createtable
+    fi
+    continue
   fi
   
   # deal with column family attribute
   if [[ $l =~ $cf ]]
   then
-    #echo $l|sed 's/FOREVER/org.apache.hadoop.hbase.HConstants::FOREVER/'
-    #echo $l|sed "s/ TTL => 'FOREVER',//"
-    #echo 'this is column family'
-    #createtable="$createtable, $(echo $l|sed 's/FOREVER/org.apache.hadoop.hbase.HConstants::FOREVER/')"
     createtable="$createtable, $(echo $l|sed "s/ TTL => 'FOREVER',//")"
-    #echo -e "\n*****createtable string:\n$createtable\n"
+    continue
   fi
 
   # output "hbase shell input" to file
   if [[ $l = "nil" ]]
   then
-    if [[ $tableA =~ $(cat $tablelist) ]]
+    if [[ $(cat $tablelist) =~ $tableA ]]
     then
       echo $createtable >>$createtablelist
       createtable=""
-      #echo 'the end of desc'
     fi
   fi
 done <$desclist
@@ -237,12 +230,8 @@ do
   rcout="${tmpdir}mr-rc-$name.out.tmp" # mapreduce.RowCount ouput
   rclist="${tmpdir}rc.table.list-$1-$2.tmp" # new line seperated row count outcome, each line look like: table,100
 
-  #echo $t
-  #echo $tmpt
-
   # check if table import done
   success=$(grep -w $tmpt $checklist)
-  #echo $success
   if [[ $success = $tmpt ]]
   then
     echo "table $tmpt is done, continue with next table"
