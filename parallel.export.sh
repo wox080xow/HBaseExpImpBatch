@@ -138,6 +138,31 @@ fi
 echo -e $descline|hbase shell -n >>$desclist
 echo "$desclist is created."
 
+# generate tablelist without TEMP and DISABLED tables
+if [[ -f $tablelist ]]
+then
+  echo "$tablelist exists, remove old tmp file"
+  rm -rf $tablelist
+fi
+
+while read l
+do
+  table="Table"
+  enabledstring="ENABLED"
+  # exclude disabled table
+  if [[ $l =~ $table ]]
+  then
+    tableAl=$(echo $l|cut -d' ' -f2)
+    if [[ $l =~ $enabledstring ]]
+    then
+      echo "table $tableAl is an enabled table from src"
+      echo $tableAl >>$tablelist
+    else
+      echo "table $tableAl is a disabled table from src"
+    fi
+  fi
+done <$desclist
+echo "tablelist $tablelist is created"
 
 # send $desclist to cdp hdfs
 distcpout="${tmpdir}mr-distcp.out.tmp"
