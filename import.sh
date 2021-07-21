@@ -52,9 +52,11 @@ tabledroppedlist="${tmpdir}tabledropped.out.list-$1-$2.tmp" # hbase shell drop '
 
 desclistfilename="desc.list-$1-$2.tmp"
 desclist="${tmpdir}$desclistfilename" # hbase shell desc 'table' output FROM HDP
+# desclist="desc.list"
 desclistfile="/$desclistfilename"
 
 tablelist="${tmpdir}table.list-$1-$2.tmp" # new line seperated tables
+# tablelist="table.list.tmp"
 tabletobecreatedlist="${tmpdir}tabletobecreated.list-$1-$2.tmp" # new line seperated tmp tables
 createtablelist="${tmpdir}createtable.list-$1-$2.tmp" # hbase shell create 'table','cf',... input
 tablecreatedlist="${tmpdir}tablecreated.out.list-$1-$2.tmp" # hbase shell create 'table,'cf',... output
@@ -132,20 +134,28 @@ while read l
 do
   table="Table"
   enabledstring="ENABLED"
+  tempstring='TEMP.'
   # exclude disabled table
   if [[ $l =~ $table ]]
   then
     tableAl=$(echo $l|cut -d' ' -f2)
-    if [[ $l =~ $enabledstring ]]
-    then
-      echo "table $tableAl is an enabled table from src"
-      echo $tableAl >>$tablelist
+    if [[ $l =~ $tempstring ]]
+    then 
+      echo "table $tableAl is a temporary table from src"
+      continue
     else
-      echo "table $tableAl is a disabled table from src"
+      echo "table $tableAl is an regular table from src"
+      if [[ $l =~ $enabledstring ]]
+      then
+        echo "table $tableAl is an enabled table from src"
+        echo $tableAl >>$tablelist
+      else
+        echo "table $tableAl is a disabled table from src"
+      fi
     fi
   fi
 done <$desclist
-
+echo "tablelist $tablelist is created"
 
 # create $createtablelist
 
