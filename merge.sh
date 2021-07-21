@@ -52,7 +52,7 @@ tablelist="${tmpdir}table.list-$1-$2.tmp" # new line seperated tables generated 
 tabletobecreatedlistO="${tmpdir}origin.tabletobecreated.list-$1-$2.tmp" # new line seperated tmp tables
 createtablelistO="${tmpdir}origin.createtable.list-$1-$2.tmp" # hbase shell create 'table','cf',... input
 tablecreatedlistO="${tmpdir}origin.tablecreated.out.list-$1-$2.tmp" # hbase shell create 'table,'cf',... output
-tablelistE="${tmpdir}exist.table.list.tmp"
+tablelistE="${tmpdir}exist.table.list-$1-$2.tmp"
 
 altertablelist="${tmpdir}altertable.list-$1-$2.tmp"
 tabletobealteredlist="${tmpdir}tablatobealtered.list-$1-$2.tmp"
@@ -64,6 +64,8 @@ tablealteredlist="${tmpdir}tablealtered.out.list-$1-$2.tmp"
 echo "list"|hbase shell -n >list.list.tmp
 lines=$(($(($(cat list.list.tmp|wc -l)-3))/2))
 #echo $lines
+rm -f $tablelistE
+echo "tmp file $tablelistE is removed"
 cat list.list.tmp|tail -n $lines >$tablelistE
 rm -f list.list.tmp
 
@@ -89,7 +91,7 @@ do
       tableC=$(echo $tableA|sed "s/^/\'/;s/$/\'/")
       echo $tableA >>$tabletobecreatedlistO
       createtable="create $tableC"
-      echo $createtable
+      #echo $createtable
     fi
   fi
 
@@ -134,6 +136,9 @@ done <$createtablelistO
 echo -e $ctb|hbase shell -n >>$tablecreatedlistO
 echo "Tables above are created."
 
+# ALTER TABLE ATTRIBUTE
+rm -f $altertablelist $tabletobealteredlist
+echo "tmp files $altertablelist and $tabletobealteredlist are removed"
 tableA=""
 while read l
 do
@@ -160,7 +165,7 @@ do
       tableC=$(echo $tableA|sed "s/^/\'/;s/$/\'/")
       echo $tableA >>$tabletobealteredlist
       altertable="alter $tableC"
-      echo $altertable
+      #echo $altertable
     fi
     continue
   fi
@@ -182,15 +187,28 @@ do
   # output "hbase shell input" to file
   if [[ $l = "nil" ]]
   then
-    if [[ $(cat $tablelist) =~ $tableA ]]
+    if [[ $(grep -v OMNI_TMP $tablelistE) =~ $tableA ]]
+    then
+      echo "$tableA exists"
+      continue
+    elif [[ $(cat $tablelist) =~ $tableA ]]
     then
       echo $altertable >>$altertablelist
-      altertable=""
+      echo $altertable
     fi
+    altertable=""
   fi
 done <$desclist
 
 # alter table through hbase shell
+if [[ -f $altertablelist ]]
+then
+  echo "$altertablelist is created"
+else
+  touch $altertablelist
+  echo "no table to be created, $altertablelist is touched"
+fi
+
 atb=""
 while read l
 do
