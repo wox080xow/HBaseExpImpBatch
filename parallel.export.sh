@@ -45,7 +45,7 @@ function exp() {
   
   # record table export successful
   checkstring="successfully"
-  check=$(grep $checkstring $expout)
+  check=$(grep --binary-files=text $checkstring $expout)
   if [[ $check =~ $checkstring ]]
   then 
     echo $t >> $checklist
@@ -60,7 +60,7 @@ function rc() {
   # use MapReduce (plan A)
   hbase org.apache.hadoop.hbase.mapreduce.RowCounter $t --starttime=$starttime --endtime=$endtime >$rcout 2>&1
   rowstring="ROWS="
-  rows=$(grep $rowstring $rcout|sed 's/[[:space:]][[:space:]]*//'|cut -d'=' -f2)
+  rows=$(grep --binary-files=text $rowstring $rcout|sed 's/[[:space:]][[:space:]]*//'|cut -d'=' -f2)
   echo $rcout
   if [[ -z $rows ]]
   then
