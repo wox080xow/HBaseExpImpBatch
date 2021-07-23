@@ -61,63 +61,15 @@ tabletobecreatedlist="${tmpdir}tabletobecreated.list-$1-$2.tmp" # new line seper
 createtablelist="${tmpdir}createtable.list-$1-$2.tmp" # hbase shell create 'table','cf',... input
 tablecreatedlist="${tmpdir}tablecreated.out.list-$1-$2.tmp" # hbase shell create 'table,'cf',... output
 
-# DROP TEMP TABLES
+# if [[ -f $tabletobecreatedlist ]]
+# then
+#   echo "$tabletobecreatedlist exists"
+# else
+#   touch $tabletobecreatedlist
+#   echo "$tabletobecreatedlist is touched"
+# fi
 
-# list of drop table line
-disabletable=""
-droptable=""
-
-if [[ -f $tabletobecreatedlist ]]
-then
-  echo "$tabletobecreatedlist exists"
-else
-  touch $tabletobecreatedlist
-  echo "$tabletobecreatedlist is touched"
-fi
-
-if [[ -f $disabletablelist ]] || [[ -f $droptablelist ]]
-then
-  rm -f $disabletablelist $droptablelist
-  echo "remove tmp files $disabletablelist $droptablelist"
-else
-  touch $disabletablelist $droptablelist
-  echo "$disabletablelist and $droptablelist are touched"
-fi
-
-while read t
-do
-  tableAd=$(echo $t|sed "s/^/\'/;s/$/\'/")
-  disabletable="disable $tableAd"
-  echo $disabletable >>$disabletablelist
-  droptable="drop $tableAd"
-  echo $droptable >>$droptablelist
-done <$tabletobecreatedlist
-
-# disable table through hbase shell
-dtb=""
-while read l
-do
-  dta=$l
-  dtb=$dtb"\n"$dta
-done <$disabletablelist
-
-echo -e $dtb
-echo -e $dtb|hbase shell -n >>$tabledisabledlist
-echo "Tables above are disabled."
-
-# drop table through hbase shell
-dtb=""
-while read l
-do
-  dta=$l
-  dtb=$dtb"\n"$dta
-done <$droptablelist
-
-echo -e $dtb
-echo -e $dtb|hbase shell -n >>$tabledroppedlist
-echo "Tables above are dropped."
-
-# CREATE TEMP TABLE
+# CREATE LISTS $tablelist $createtablelist $tabletobecreatedlist
 
 # list of create table line
 createtable=""
@@ -197,6 +149,56 @@ do
   fi
 done <$desclist
 
+# DROP TEMP TABLES
+
+# list of drop table line
+disabletable=""
+droptable=""
+
+
+if [[ -f $disabletablelist ]] || [[ -f $droptablelist ]]
+then
+  rm -f $disabletablelist $droptablelist
+  echo "remove tmp files $disabletablelist $droptablelist"
+else
+  touch $disabletablelist $droptablelist
+  echo "$disabletablelist and $droptablelist are touched"
+fi
+
+while read t
+do
+  tableAd=$(echo $t|sed "s/^/\'/;s/$/\'/")
+  disabletable="disable $tableAd"
+  echo $disabletable >>$disabletablelist
+  droptable="drop $tableAd"
+  echo $droptable >>$droptablelist
+done <$tabletobecreatedlist
+
+# disable table through hbase shell
+dtb=""
+while read l
+do
+  dta=$l
+  dtb=$dtb"\n"$dta
+done <$disabletablelist
+
+echo -e $dtb
+echo -e $dtb|hbase shell -n >>$tabledisabledlist
+echo "Tables above are disabled."
+
+# drop table through hbase shell
+dtb=""
+while read l
+do
+  dta=$l
+  dtb=$dtb"\n"$dta
+done <$droptablelist
+
+echo -e $dtb
+echo -e $dtb|hbase shell -n >>$tabledroppedlist
+echo "Tables above are dropped."
+
+# CREATE TMP TABLE 
 # create table through hbase shell
 ctb=""
 while read l
