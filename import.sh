@@ -241,7 +241,7 @@ do
   # files
   impout="${tmpdir}mr-imp-$inputdir.out.tmp" # mapreduce.Import output
   rcout="${tmpdir}mr-rc-$name.out.tmp" # mapreduce.RowCount ouput
-  rclist="${tmpdir}rc.table.list-$1-$2.tmp" # new line seperated row count outcome, each line look like: table,100
+  rclist="${tmpdir}import.rc.table.list-$1-$2.tmp" # new line seperated row count outcome, each line look like: table,100
 
   # check if table import done
   success=$(grep -w $tmpt $checklist)
