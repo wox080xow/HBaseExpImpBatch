@@ -281,6 +281,6 @@ do
      rows=0
   fi
   phase "table $t $rowstring$rows"
-  echo "$tmpt,$rows" >>$rclistM
+  echo "$t,$rows" >>$rclistM
 
 done <$tablelist
