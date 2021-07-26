@@ -27,23 +27,30 @@ function cleaning() {
 
     while read l
     do
-      echo -e "\n"
+      #echo -e "\n"
       partA=$(echo $l|cut -d',' -f1)
       partAold=$(grep $partA $newfile|cut -d',' -f1)
       partB=$(echo $l|cut -d',' -f2)
+      #if [[ "matches" =~ $partB ]]
+      if [[ $partB =~ "Binary file" ]]
+      then
+        partB=0
+      else
+        partB=$partB
+      fi
       partBold=$(grep $partA $newfile|cut -d',' -f2)
-      echo readline $partA $partB
-      echo oldrecord $partAold $partBold
+      #echo read line $partA $partB
+      #echo old record $partAold $partBold
       if [[ -z $partAold ]]
       then
-        echo "no record of $partA"
-        echo $l >>$newfile
+        #echo "no record of $partA"
+        echo $partA,$partB >>$newfile
       else
-        echo "there is a record of $partA"
+        #echo "there is a record of $partA"
         if [[ $partB -gt $partBold ]]
         then
           sed -i "s/$partA,$partBold/$partA,$partB/" $newfile
-          echo "update $partA Row Count"
+          #echo "update $partA Row Count"
         fi
       fi
     done <$file
