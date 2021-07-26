@@ -39,6 +39,20 @@ function exp() {
     phase "START table $t EXPORT"
   fi
 
+  file=$outputdirp$outputdir
+  filecheckstring="No such file or directory"
+  filecheck=$(hdfs dfs -ls $file)
+
+  if [[ $filecheckstring =~ $filecheck ]]
+  then
+    #echo $filecheck
+    echo "No file on hdfs"
+  else
+    echo $filecheck
+    hdfs dfs -rm -r $file
+    echo "Remove Failed Export output $file"
+  fi
+
   hbase org.apache.hadoop.hbase.mapreduce.Export $t $outputdirp$outputdir 1 $starttime $endtime >$expout 2>&1
   echo "$t output directory:" $outputdirp$outputdir
   echo $expout
@@ -166,12 +180,11 @@ echo "tablelist $tablelist is created"
 
 # send $desclist to cdp hdfs
 distcpout="${tmpdir}mr-distcp.out.tmp"
-hdfs dfs -put -f $desclist $srcdir
-#echo $desclist $srcdir
-hadoop distcp -overwrite $srchdfs$srcdir$desclistfile $desthdfs$destdir >$distcpout 2>&1
-#echo $srchdfs$srcdir$desclistfile $desthdfs$destdir
-echo "$desclist is sent to CDP at $desthdfs$destdir$desclistfilename."
-
+#hdfs dfs -put -f $desclist $srcdir
+#hadoop distcp -overwrite $srchdfs$srcdir$desclistfile $desthdfs$destdir >$distcpout 2>&1
+hdfs dfs -put -f $desclist $outputdirp
+#echo "$desclist is sent to CDP at $desthdfs$destdir$desclistfilename."
+echo "$desclist is sent to CDP at $outputdirp$desclistfilename"
 
 # EXPORT BATCH
 
