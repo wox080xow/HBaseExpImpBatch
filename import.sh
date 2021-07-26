@@ -126,7 +126,7 @@ do
       tableC=$(echo $tableB|sed "s/^/\'/;s/$/\'/")
       echo $tableB >>$tabletobecreatedlist
       createtable="create $tableC"
-      echo $createtable
+      # echo $createtable
     fi
     continue
   fi
@@ -200,6 +200,7 @@ echo "Tables above are dropped."
 
 # CREATE TMP TABLE 
 # create table through hbase shell
+cat $createtablelist
 ctb=""
 while read l
 do
