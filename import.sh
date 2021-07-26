@@ -285,7 +285,7 @@ do
   then
      rows=0
   fi
-  phase "table $t $rowstring$rows"
-  echo "$tmpt,$rows" >>$rclist
+  phase "table $tmpt $rowstring$rows"
+  echo "$t,$rows" >>$rclist
 
 done <$tablelist
