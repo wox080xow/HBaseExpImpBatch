@@ -210,7 +210,8 @@ do
   # files
   expout="${tmpdir}mr-$outputdir.out.tmp" # mapreduce.Export output
   rcout="${tmpdir}mr-rc-$name.out.tmp" # mapreduce.RowCount output
-  rclist="${tmpdir}export.rc.table.list-$1-$2.tmp" # new line seperated rowcount outcome, each line look like: table,100
+  rclistfilename="export.rc.table.list-$1-$2.tmp" 
+  rclist="${tmpdir}$rclistfilename" # new line seperated rowcount outcome, each line look like: table,100
 
   if [ $n -lt 5 ]
   then
@@ -228,3 +229,5 @@ do
 done <$tablelist
 
 # send $rclist to cdp hdfs
+hdfs dfs -put -f $rclist $outputdirp
+echo "$rclist is sent to CDP at $outputdirp$rclistfilename"
