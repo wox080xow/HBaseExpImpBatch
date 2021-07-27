@@ -86,7 +86,7 @@ while read l
 do
   table="Table"
   enabledstring="ENABLED"
-  tempstring='TEMP.'
+  tempstring='TEMP\.'
   # exclude disabled table
   if [[ $l =~ $table ]]
   then
