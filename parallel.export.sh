@@ -40,17 +40,17 @@ function exp() {
   fi
 
   file=$outputdirp$outputdir
-  filecheckstring="No such file or directory"
+  #filecheckstring="No such file or directory"
   filecheck=$(hdfs dfs -ls $file)
 
-  if [[ $filecheckstring =~ $filecheck ]]
+  if [[ $file =~ $filecheck ]]
   then
-    #echo $filecheck
-    echo "No file on hdfs"
-  else
     echo $filecheck
     hdfs dfs -rm -r $file
     echo "Remove Failed Export output $file"
+  else
+    #echo $filecheck
+    hdfs dfs -rm -r $file
   fi
 
   hbase org.apache.hadoop.hbase.mapreduce.Export $t $outputdirp$outputdir 1 $starttime $endtime >$expout 2>&1
