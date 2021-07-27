@@ -1,7 +1,7 @@
 tmpdir="OMNI_TMP_FILES/"
 #tmpdir="tmp/"
 exportrclist="${tmpdir}export.rc.table.list-$1-$2.tmp"
-importlist="${tmpdir}import.rc.table.list-$1-$2.tmp"
+importrclist="${tmpdir}import.rc.table.list-$1-$2.tmp"
 mergerclist="${tmpdir}merge.rc.table.list-$1-$2.tmp"
 #exportrclist="${tmpdir}x"
 #importrclist="${tmpdir}y"
