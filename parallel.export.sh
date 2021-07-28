@@ -50,7 +50,7 @@ function exp() {
     echo "Remove Failed Export output $file"
   else
     #echo $filecheck
-    hdfs dfs -rm -r $file
+    echo "No file on hdfs"
   fi
 
   hbase org.apache.hadoop.hbase.mapreduce.Export $t $outputdirp$outputdir 1 $starttime $endtime >$expout 2>&1
