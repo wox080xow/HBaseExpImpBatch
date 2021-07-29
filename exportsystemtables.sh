@@ -1,3 +1,18 @@
+function banner() {
+  echo ""
+  echo "##################################################################################"
+  echo "##"
+  echo "## $*"
+  echo "##"
+  echo "##################################################################################"
+  echo ""
+}
+
+function phase() {
+  echo ""
+  echo "*****$******"
+}
+
 function maketmpdir() {
   if [[ -d $* ]]
   then
@@ -36,6 +51,12 @@ do
   descline=$descline"\n"$descseg
 done
 
+if [[ -f $desclist ]]
+then
+  echo "$desclist exists, remove old tmp file"
+  rm -rf $desclist
+fi
+
 echo -e $descline|hbase shell -n >>$desclist
 echo "$desclist is created."
 
@@ -49,7 +70,7 @@ do
   outputdir="export-$val"
   expout="${tmpdir}mr-$outputdir.out.tmp"
   
-  echo "START $val EXPORT"
+  phase "START $val EXPORT"
   #hbase org.apache.hadoop.hbase.mapreduce.Export -Dmapred.job.queue.name=Hive_EDC $val $outputdirp$outputdir >$expout 2>&1
   hbase org.apache.hadoop.hbase.mapreduce.Export $val $outputdirp$outputdir >$expout 2>&1
   echo $outputdirp$outputdir
