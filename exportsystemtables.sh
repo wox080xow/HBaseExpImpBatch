@@ -52,7 +52,6 @@ do
   echo "START $val EXPORT"
   #hbase org.apache.hadoop.hbase.mapreduce.Export -Dmapred.job.queue.name=Hive_EDC $val $outputdirp$outputdir >$expout 2>&1
   hbase org.apache.hadoop.hbase.mapreduce.Export $val $outputdirp$outputdir >$expout 2>&1
-  #a="hbase org.apache.hadoop.hbase.mapreduce.Export $val $outputdirp$outputdir >$expout 2>&1"
-  #echo $a
   echo $outputdirp$outputdir
+  echo $expout
 done
