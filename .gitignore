@@ -1,3 +1,5 @@
 *.tmp
 tmp/
 OMNI_TMP_FILES/
+derby.log
+nohup.out
