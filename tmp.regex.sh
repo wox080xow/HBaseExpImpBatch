@@ -10,11 +10,11 @@ then
   echo ${BASH_REMATCH[0]}
 fi
 
-echo 'echo $string|grep -P $re'
-echo $string|grep -P $re
-echo -e '\n'
-echo 'grep -P [[:xdigit:]]{32} hdfs.out'
-grep -P [[:xdigit:]]{32} hdfs.out
-echo -e '\n'
-echo 'hdfs dfs -du -h /tmp/bulkload/TMP1_IMP-1 | grep -P [[:xdigit:]]{32} | sed 's/[[:space:]][[:space:]]./ /g'|cut -d' ' -f3'
-hdfs dfs -du -h /tmp/bulkload/TMP1_IMP-1 | grep -P [[:xdigit:]]{32} | sed 's/[[:space:]][[:space:]]./ /g'|cut -d' ' -f3
+# echo 'echo $string|grep -P $re'
+# echo $string|grep -P $re
+# echo -e '\n'
+# echo 'grep -P [[:xdigit:]]{32} hdfs.out'
+# grep -P [[:xdigit:]]{32} hdfs.out
+# echo -e '\n'
+# echo 'hdfs dfs -du -h /tmp/bulkload/TMP1_IMP-1 | grep -P [[:xdigit:]]{32} | sed 's/[[:space:]][[:space:]]./ /g'|cut -d' ' -f3'
+# hdfs dfs -du -h /tmp/bulkload/TMP1_IMP-1 | grep -P [[:xdigit:]]{32} | sed 's/[[:space:]][[:space:]]./ /g'|cut -d' ' -f3
