@@ -39,6 +39,7 @@ srcdir="/hbase/data/default/" # for CDP
 # srcdir="/apps/hbase/data/data/default/" # for HDP
 destdir="/tmp/bulkload/"
 
+banner "COPY HFILE"
 while read t
 do
   # tmpt="${t}_OMNI_TMP"
@@ -52,7 +53,7 @@ banner "START TABLE BULKLOAD"
 
 while read t
 do
-  tmpt="${t}_OMNI_TMP"
+  # tmpt="${t}_OMNI_TMP"
   hdfsout="${tmpdir}hdfs-$t.out.tmp"
   bulkloadout="${tmpdir}bulkload-$t.out.tmp"
   
