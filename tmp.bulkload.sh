@@ -44,16 +44,18 @@ fi
 tmpdir="OMNI_TMP_FILES/"
 maketmpdir $tmpdir
 
-tablelist="tmp/tablelist.tmp"
+# variables
+starttime=$(date -d $1 +%s)000
+endtime=$(date -d $2 +%s)000
+
+# tablelist="tmp/tablelist.tmp"
+tablelist="${tmpdir}table.list-$1-$2.tmp" # tablelist generated from import.sh
+rclistI="${tmpdir}import.rc.table.list-$1-$2.tmp" # rclist generated from import.sh
 
 # COPY TMP TABLE HFILE
 srcdir="/hbase/data/default/" # for CDP
 # srcdir="/apps/hbase/data/data/default/" # for HDP
 destdir="/tmp/bulkload/"
-
-# variables
-starttime=$(date -d $1 +%s)000
-endtime=$(date -d $2 +%s)000
 
 banner "COPY HFILE"
 while read t

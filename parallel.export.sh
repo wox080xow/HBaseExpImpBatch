@@ -133,7 +133,7 @@ lines=$(($(($(cat $listlist|wc -l)-3))/2))
 cat $listlist|tail -n $lines|grep -v "TEMP\." >$tablelist
 if [[ -f $tablelist ]]
 then
-  echo "TEMP $tablelist is created"
+  echo "TEMPFILE $tablelist is created"
 fi
 
 # generate desc table
@@ -151,15 +151,16 @@ then
 fi
 
 echo -e $descline|hbase shell -n >>$desclist
+
 if [[ -f $tablelist ]]
 then
-  echo "TEMP $desclist is created"
+  echo "TEMPFILE $desclist is created"
 fi
 
 # generate tablelist without TEMP and DISABLED tables
 if [[ -f $tablelist ]]
 then
-  echo "$tablelist exists, remove old tmp file"
+  echo "TEMPFILE $tablelist exists, remove old tmp file"
   rm -rf $tablelist
 fi
 
@@ -182,19 +183,25 @@ do
 done <$desclist
 echo "tablelist $tablelist is created"
 
-# generate desctable without TEMP and DISABLED tables
+# make tablelist exclude problematic tables and Phoenix SYSTEM tables
+while read l
+do
+  sed -i "/$l/d" $tablelist
+done <$excllist
+
+# generate desclist without TEMP and DISABLED tables
+if [[ -f $desclist ]]
+then
+  echo "TEMPFILE $desclist exists, remove old tmp file"
+  rm -rf $desclist
+fi
+
+descline=""
 while read t
 do
   descseg="desc '$t'"
   descline=$descline"\n"$descseg
 done <$tablelist
-#rm -rf $tablelist
-
-if [[ -f $desclist ]]
-then
-  echo "$desclist exists, remove old tmp file"
-  rm -rf $desclist
-fi
 
 echo -e $descline|hbase shell -n >>$desclist
 echo "desclist $desclist is created."
