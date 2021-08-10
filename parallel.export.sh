@@ -118,6 +118,8 @@ desclistfilename="desc.list-$1-$2.tmp"
 desclist="${tmpdir}$desclistfilename" # hbase shell desc 'table' output
 desclistfile="/$desclistfilename"
 
+excllist="${tmpdir}exclud.table.list.tmp"
+
 # generate table list
 if [[ -f $tablelist ]]
 then
@@ -131,17 +133,16 @@ lines=$(($(($(cat $listlist|wc -l)-3))/2))
 cat $listlist|tail -n $lines|grep -v "TEMP\." >$tablelist
 if [[ -f $tablelist ]]
 then
-  echo "$tablelist is created"
+  echo "TEMP $tablelist is created"
 fi
 
-# export desc table
+# generate desc table
 descline=""
 while read t
 do
   descseg="desc '$t'"
   descline=$descline"\n"$descseg
 done <$tablelist
-#rm -rf $tablelist
 
 if [[ -f $desclist ]]
 then
@@ -150,7 +151,10 @@ then
 fi
 
 echo -e $descline|hbase shell -n >>$desclist
-echo "$desclist is created."
+if [[ -f $tablelist ]]
+then
+  echo "TEMP $desclist is created"
+fi
 
 # generate tablelist without TEMP and DISABLED tables
 if [[ -f $tablelist ]]
@@ -178,12 +182,29 @@ do
 done <$desclist
 echo "tablelist $tablelist is created"
 
+# generate desctable without TEMP and DISABLED tables
+while read t
+do
+  descseg="desc '$t'"
+  descline=$descline"\n"$descseg
+done <$tablelist
+#rm -rf $tablelist
+
+if [[ -f $desclist ]]
+then
+  echo "$desclist exists, remove old tmp file"
+  rm -rf $desclist
+fi
+
+echo -e $descline|hbase shell -n >>$desclist
+echo "desclist $desclist is created."
+
 # send $desclist to cdp hdfs
 distcpout="${tmpdir}mr-distcp.out.tmp"
 #hdfs dfs -put -f $desclist $srcdir
 #hadoop distcp -overwrite $srchdfs$srcdir$desclistfile $desthdfs$destdir >$distcpout 2>&1
-hdfs dfs -put -f $desclist $outputdirp
 #echo "$desclist is sent to CDP at $desthdfs$destdir$desclistfilename."
+hdfs dfs -put -f $desclist $outputdirp
 echo "$desclist is sent to CDP at $outputdirp$desclistfilename"
 
 # EXPORT BATCH

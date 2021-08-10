@@ -1,5 +1,5 @@
 function usage() {
-   echo -e "Usage:  sh $0"
+   echo -e "Usage:  sh $0 starttime endtime\n\te.g.\n\tsh $0 210601 210630"
    exit 1
 }
 
@@ -28,6 +28,18 @@ function phase() {
   echo "*****$******"
 }
 
+if [[ -z $1 ]]
+then
+  usage
+  exit 1
+fi
+
+if [[ -z $2 ]]
+then
+  usage
+  exit 1
+fi
+
 # dir for tmp files
 tmpdir="OMNI_TMP_FILES/"
 maketmpdir $tmpdir
@@ -39,12 +51,16 @@ srcdir="/hbase/data/default/" # for CDP
 # srcdir="/apps/hbase/data/data/default/" # for HDP
 destdir="/tmp/bulkload/"
 
+# variables
+starttime=$(date -d $1 +%s)000
+endtime=$(date -d $2 +%s)000
+
 banner "COPY HFILE"
 while read t
 do
-  # tmpt="${t}_OMNI_TMP"
-  # srchfile="$srcdir$tmpt"
-  srchfile="$srcdir$t"
+  tmpt="${t}_OMNI_TMP"
+  srchfile="$srcdir$tmpt"
+  # srchfile="$srcdir$t"
   hdfs dfs -cp $srchfile $destdir
 done <$tablelist
 
@@ -75,4 +91,22 @@ do
     fi
   done <$hdfsout
 
+done <$tablelist
+
+while read t
+do
+  # files
+  rcout="${tmpdir}bulkload.mr-rc-$t-$1-$2.out.tmp" # mapreduce.RowCount ouput
+  rclist="${tmpdir}bulkload.rc.table.list-$1-$2.tmp" # new line seperated row count outcome, each line look like: table,100
+
+  # record table and row count
+  hbase org.apache.hadoop.hbase.mapreduce.RowCounter $t --starttime=$starttime --endtime=$endtime >$rcout 2>&1
+  rowstring="ROWS="
+  rows=$(grep $rowstring $rcout|sed 's/[[:space:]][[:space:]]*//'|cut -d'=' -f2)
+  if [[ -z $rows ]]
+  then
+     rows=0
+  fi
+  phase "table $t $rowstring$rows"
+  echo "$t,$rows" >>$rclist
 done <$tablelist
