@@ -118,6 +118,8 @@ desclistfilename="desc.list-$1-$2.tmp"
 desclist="${tmpdir}$desclistfilename" # hbase shell desc 'table' output
 desclistfile="/$desclistfilename"
 
+excllist="${tmpdir}exclud.table.list.tmp"
+
 # generate table list
 if [[ -f $tablelist ]]
 then
