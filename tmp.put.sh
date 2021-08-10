@@ -1,7 +1,9 @@
 #variables
 table=$1
 cf=$2
-start=210101
+start=200101
+#start=210101
+#start=210701
 starttime=$(date -d $start +%s)000
 
 function usage() {
@@ -19,7 +21,10 @@ function putloop() {
   endrow=$((k*10))
   for i in $(seq $startrow $endrow)
   do
-    putvalueline="put '$1','$i','$2:C1','value$i',$3"
+    #i=$((i+300))
+    #i=$((i+900))
+    #putvalueline="put '$1','$i','$2:C1','value$i',$3"
+    putvalueline="put '$1','$i','$2:C1','bulkload$i',$3"
     putvalue="$putvalue\n$putvalueline"
   done
   echo $putvalue
