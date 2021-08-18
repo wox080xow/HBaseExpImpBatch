@@ -108,6 +108,10 @@ do
   hdfs dfs -du -h /tmp/bulkload/$tmpt >$hdfsout
   
   phase "table $t"
+  
+  # enable table before bulkloading
+  echo 'enable "$t"'|hbase shell -n
+
   # re="(\/[a-zA-Z0-9_-]+)+$"
   re="/.*/.*/[[:xdigit:]]{32}$"
   while read l
@@ -122,6 +126,9 @@ do
     fi
   done <$hdfsout
 
+  # disable table after bulkloading
+  echo 'disable "$t"'|hbase shell -n
+
 done <$tablelist
 
 # ROWCOUNT TABLE
@@ -130,6 +137,9 @@ do
   # files
   rcout="${tmpdir}bulkload.mr-rc-$t-$1-$2.out.tmp" # mapreduce.RowCount ouput
   rclist="${tmpdir}bulkload.rc.table.list-$1-$2.tmp" # new line seperated row count outcome, each line look like: table,100
+
+  # enable table before RowCounter
+  echo 'enable "$t"'|hbase shell -n
 
   # record table and row count
   hbase org.apache.hadoop.hbase.mapreduce.RowCounter $t --starttime=$starttime --endtime=$endtime >$rcout 2>&1
@@ -141,4 +151,9 @@ do
   fi
   phase "table $t $rowstring$rows"
   echo "$t,$rows" >>$rclist
+
+  # disable table after RowCounter
+  echo 'disable "$t"'|hbase shell -n
+
 done <$tablelist
+
