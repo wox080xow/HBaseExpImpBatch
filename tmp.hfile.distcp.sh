@@ -39,13 +39,47 @@ do
     string=$l
     if [[ $string =~ $re ]]
     then
-        path=${BASH_REMATCH[0]}
-        distcpout="${tmpdir}distcp-$t-$path.out.tmp"
-        # echo $path
-        phase TABLE $t REGION $path
-        echo src: $srchdfs$srcdir$t/$path
-        echo dest: $desthdfs$destdir$t/
-        echo out: $distcpout
-        hadoop distcp $srchdfs$srcdir$t/$path $desthdfs$destdir$t/ >$distcpout 2>&1
+        region=${BASH_REMATCH[0]}
+        # distcpout="${tmpdir}distcp-$t-$region.out.tmp"
+        hdfsout2="${tmpdir}hdfs-$t-$region.out.tmp"
+        # echo $region
+        # phase TABLE $t REGION $region
+        # echo src: $srchdfs$srcdir$t/$region
+        # echo dest: $desthdfs$destdir$t/
+        # echo out: $distcpout
+        # hadoop distcp $srchdfs$srcdir$t/$region $desthdfs$destdir$t/ >$distcpout 2>&1 &
+        hdfs dfs -du -h $srchdfs$srcdir$t/$region >$hdfsout2
+        hdfs dfs -mkdir $desthdfs$destdir$t/$region
+        while read l
+        do
+            string=$l
+            if [[ $string =~ "recovered.edits" ]] || [[ $string =~ ".tmp" ]] || [[ $string =~ ".regioninfo" ]]
+            then
+                echo 'not hfile'
+            else
+                cf=$(echo $string|cut -d'/' -f11)
+                # echo $cf
+                hdfsout3="${tmpdir}hdfs-$t-$region-$cf.out.tmp"
+                phase TABLE $t REGION $region COLUMNFAMILY $cf
+                hdfs dfs -du -h $srchdfs$srcdir$t/$region/$cf >$hdfsout3
+                hdfs dfs -mkdir $desthdfs$destdir$t/$region/$cf
+                while read l
+                do
+                    string=$l
+                    # echo $string
+                    if [[ $string =~ $re ]]
+                    then
+                        hfile=${BASH_REMATCH[0]}
+                        # echo hfile of $cf: $hfile
+                        distcpout="${tmpdir}distcp-$t-$region-$cf-$hfile.out.tmp"
+                        phase HFile $hfile
+                        echo src: $srchdfs$srcdir$t/$region/$cf/$hfile 
+                        echo dest: $desthdfs$destdir$t/$cf
+                        echo out: $distcpout
+                        hadoop distcp $srchdfs$srcdir$t/$region/$cf/$hfile $desthdfs$destdir$t/$region/$cf >$distcpout 2>&1 &
+                    fi
+                done <$hdfsout3
+            fi
+        done <$hdfsout2
     fi
 done <$hdfsout
