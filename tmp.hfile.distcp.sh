@@ -79,6 +79,7 @@ do
                         hadoop distcp $srchdfs$srcdir$t/$region/$cf/$hfile $desthdfs$destdir$t/$region/$cf >$distcpout 2>&1 &
                     fi
                 done <$hdfsout3
+                wait
             fi
         done <$hdfsout2
     fi
