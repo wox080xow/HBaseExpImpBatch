@@ -19,7 +19,7 @@ srchdfs="hdfs://172.16.1.66:8020"
 # srchdfs="hdfs://pahdpfs:8020"
 srcdir="/apps/hbase/data/data/default/"
 desthdfs="hdfs://172.16.1.57:8020"
-# desthdfs="hdfs://tnisilonh500"
+# desthdfs="hdfs://tnisilonh500:8020"
 destdir="/tmp/bulkload/"
 
 # tmpdir
@@ -43,7 +43,7 @@ do
         # distcpout="${tmpdir}distcp-$t-$region.out.tmp"
         hdfsout2="${tmpdir}hdfs-$t-$region.out.tmp"
         # echo $region
-        # phase TABLE $t REGION $region
+        phase TABLE $t REGION $region
         # echo src: $srchdfs$srcdir$t/$region
         # echo dest: $desthdfs$destdir$t/
         # echo out: $distcpout
@@ -60,7 +60,7 @@ do
                 cf=$(echo $string|cut -d'/' -f11)
                 # echo $cf
                 hdfsout3="${tmpdir}hdfs-$t-$region-$cf.out.tmp"
-                phase TABLE $t REGION $region COLUMNFAMILY $cf
+                phase COLUMNFAMILY $cf
                 hdfs dfs -du -h $srchdfs$srcdir$t/$region/$cf >$hdfsout3
                 hdfs dfs -mkdir $desthdfs$destdir$t/$region/$cf
                 while read l
@@ -79,6 +79,7 @@ do
                         hadoop distcp $srchdfs$srcdir$t/$region/$cf/$hfile $desthdfs$destdir$t/$region/$cf >$distcpout 2>&1 &
                     fi
                 done <$hdfsout3
+                wait
             fi
         done <$hdfsout2
     fi
