@@ -9,6 +9,6 @@ while read t
 do
   snapshot="${t}_SS_$ymd"
   esout="${tmpdir}mr-exportsnapshot-$snapshot.out.tmp"
-  sudo -u hdfs hbase org.apache.hadoop.hbase.snapshot.ExportSnapshot -snapshot $snapshot -copy-to $dest >$esout 2>&1
   echo esout: $esout
+  sudo -u hdfs hbase org.apache.hadoop.hbase.snapshot.ExportSnapshot -snapshot $snapshot -copy-to $dest >$esout 2>&1
 done <$tablelisttarget
