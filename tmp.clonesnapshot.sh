@@ -28,5 +28,5 @@ do
 done <$snapshottablelist
 
 echo -e $dtb
-# echo -e $dtb|hbase shell -n >>$tablesnapshootlist
-echo "All tables are snapshoot."
+echo -e $dtb|hbase shell -n >>$tablesnapshootlist
+echo "All tables are cloned."
