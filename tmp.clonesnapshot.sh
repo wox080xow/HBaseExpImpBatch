@@ -9,7 +9,7 @@ tablesnapshootlist=$tmpdir"tablesnapshoot.out.list.tmp"
 tablelisttarget=$tmpdir"table.list.tmp.target"
 
 rm -f $snapshottablelist
-ymd=$(date +%y%m%d)
+ymd="210923"
 while read t 
 do
   tableAd=$(echo $t|sed "s/^/\'/;s/$/\'/")
@@ -28,5 +28,5 @@ do
 done <$snapshottablelist
 
 echo -e $dtb
-echo -e $dtb|hbase shell -n >>$tablesnapshootlist
+#echo -e $dtb|hbase shell -n >>$tablesnapshootlist
 echo "All tables are cloned."

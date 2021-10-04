@@ -72,7 +72,7 @@ do
     path=${BASH_REMATCH[0]}
     echo "HFile: $path"
     echo "hbase org.apache.hadoop.hbase.mapreduce.LoadIncrementalHFiles $path $t"
-    # hbase org.apache.hadoop.hbase.mapreduce.LoadIncrementalHFiles $path $t >$bulkloadout 2>&1
+    hbase org.apache.hadoop.hbase.mapreduce.LoadIncrementalHFiles $path $t >$bulkloadout 2>&1
   fi
 done <$hdfsout
 

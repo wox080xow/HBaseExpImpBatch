@@ -41,9 +41,10 @@ maketmpdir $tmpdir
 # factory
 f=$1
 tablelist="factory/"$f
+hfilelist="${tmpdir}hfile.bulkload.list.tmp"
 
 # BULKLOAD TABLE
-banner "START TABLE BULKLOAD"
+# banner "START TABLE BULKLOAD"
 
 while read t
 do
@@ -60,9 +61,12 @@ do
     if [[ $string =~ $re ]]
     then
       path=${BASH_REMATCH[0]}
-      echo "HFile: $path"
-      echo "hbase org.apache.hadoop.hbase.mapreduce.LoadIncrementalHFiles $path $t"
-      # hbase org.apache.hadoop.hbase.mapreduce.LoadIncrementalHFiles $path $t >$bulkloadout 2>&1
+      echo "Region: $path"
+      bulkloadout="${tmpdir}bulkload-$t-r.out.tmp"
+      #echo "hbase org.apache.hadoop.hbase.mapreduce.LoadIncrementalHFiles $path $t"
+      hbase org.apache.hadoop.hbase.mapreduce.LoadIncrementalHFiles $path $t >$bulkloadout 2>&1
+      echo "bulkloadout: $bulkloadout"
+      cat $bulkloadout|grep "Trying to load hfile"|cut -d' ' -f1,2,10 >>$hfilelist
     fi
   done <$hdfsout
 done <$tablelist
