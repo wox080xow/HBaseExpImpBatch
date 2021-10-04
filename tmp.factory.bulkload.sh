@@ -63,6 +63,7 @@ do
       echo "HFile: $path"
       echo "hbase org.apache.hadoop.hbase.mapreduce.LoadIncrementalHFiles $path $t"
       # hbase org.apache.hadoop.hbase.mapreduce.LoadIncrementalHFiles $path $t >$bulkloadout 2>&1
+      echo "bulkloadout: $bulkloadout"
     fi
   done <$hdfsout
 done <$tablelist

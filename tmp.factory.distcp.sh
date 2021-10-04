@@ -53,8 +53,11 @@ srcdir="/apps/hbase/data/data/default/"
 desthdfs="hdfs://172.16.1.57:8020"
 destdir="/tmp/bulkload"
 
-# files
+# dir for tmp files
 tmpdir="OMNI_TMP_FILES/"
+maketmpdir $tmpdir
+
+# files
 tablelist="factory/"$1
 velocitylist=$tmpdir"velocity.list.tmp"
 
