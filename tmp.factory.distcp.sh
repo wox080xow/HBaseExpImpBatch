@@ -15,11 +15,11 @@ srchdfs="hdfs://172.16.1.66:8020"
 #srcdir="/tmp"
 srcdir="/apps/hbase/data/data/default/"
 desthdfs="hdfs://172.16.1.57:8020"
-destdir="/tmp"
+destdir="/tmp/bulkload"
 
 # files
 tmpdir="OMNI_TMP_FILES/"
-factorylist=$tmpdir"factory.tmp"
+tablelist="factory/"$1
 velocitylist=$tmpdir"velocity.list.tmp"
 
 while read t
@@ -51,4 +51,4 @@ do
   velocity=$(($size/$delta)) # Byte/s
   printf "%'d Byte/s\n" $velocity
   echo "$t,$size,$delta,$velocity" >>$velocitylist
-done <$factorylist
+done <$tablelist
