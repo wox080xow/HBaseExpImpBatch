@@ -1,3 +1,39 @@
+function usage() {
+   echo -e "Usage:  sh $0 factoryname"
+   exit 1
+}
+
+function maketmpdir() {
+  if [[ -d $* ]]
+  then
+  echo "directory $* for tmp files exists"
+  else
+  mkdir $*
+  echo "directory $* for tmp files is created"
+  fi
+}
+
+function banner() {
+  echo ""
+  echo "##################################################################################"
+  echo "##"
+  echo "## $*"
+  echo "##"
+  echo "##################################################################################"
+  echo ""
+}
+
+function phase() {
+  echo ""
+  echo "*****$******"
+}
+
+if [[ -z $1 ]]
+then
+  usage
+  exit 1
+fi
+
 function date_cvt(){
   string=$(echo $1|sed 's/\// /g;s/:/ /g')
   year=$(echo $string|cut -d' ' -f1)
@@ -26,7 +62,8 @@ while read t
 do
   jobname=$t
   distcpout=$tmpdir"distcp-$t.out.tmp"
-  echo "hadoop distcp -Dmapred.job.name=$jobname $srchdfs$srcdir$t $desthdfs$destdir >$distcpout 2>&1 &"
+  phase $t
+  # echo "hadoop distcp -Dmapred.job.name=$jobname $srchdfs$srcdir$t $desthdfs$destdir >$distcpout 2>&1 &"
   hadoop distcp -Dmapred.job.name=$jobname $srchdfs$srcdir$t $desthdfs$destdir >$distcpout 2>&1 &
   # hadoop distcp -Dmapred.job.name=$jobname -Dmapred.job.queue.name=default $srchdfs$srcdir$t $desthdfs$destdir >$distcpout 2>&1 &
   echo SRC: $srchdfs$srcdir$t
@@ -36,9 +73,9 @@ do
   forstarttime='mapreduce.JobSubmitter: Submitting tokens for job'
   forendtime='mapreduce.Job: Counters:'
   forsize='BYTESCOPIED'
-  grep "$forstarttime" $distcpout|cut -d' ' -f1,2
-  grep "$forendtime" $distcpout|cut -d' ' -f1,2
-  grep $forsize $distcpout|cut -d'=' -f2
+  # grep "$forstarttime" $distcpout|cut -d' ' -f1,2
+  # grep "$forendtime" $distcpout|cut -d' ' -f1,2
+  # grep $forsize $distcpout|cut -d'=' -f2
   starttime=$(grep "$forstarttime" $distcpout|cut -d' ' -f1,2)
   endtime=$(grep "$forendtime" $distcpout|cut -d' ' -f1,2)
   size=$(grep $forsize $distcpout|cut -d'=' -f2)
