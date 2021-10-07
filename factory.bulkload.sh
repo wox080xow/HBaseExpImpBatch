@@ -49,8 +49,6 @@ hfilelist="${tmpdir}hfile.bulkload.list.tmp"
 while read t
 do
   hdfsout="${tmpdir}hdfs-$t.out.tmp"
-  bulkloadout="${tmpdir}bulkload-$t.out.tmp"
-
   hdfs dfs -du -h /tmp/bulkload/$t >$hdfsout
 
   phase "table $t"
@@ -62,11 +60,13 @@ do
     then
       path=${BASH_REMATCH[0]}
       echo "Region: $path"
-      bulkloadout="${tmpdir}bulkload-$t-r.out.tmp"
+      r=$(echo $path|cut -d'/' -f5)
+      bulkloadout="${tmpdir}bulkload-$t-$r.out.tmp"
       #echo "hbase org.apache.hadoop.hbase.mapreduce.LoadIncrementalHFiles $path $t"
       hbase org.apache.hadoop.hbase.mapreduce.LoadIncrementalHFiles $path $t >$bulkloadout 2>&1
       echo "bulkloadout: $bulkloadout"
-      cat $bulkloadout|grep "Trying to load hfile"|cut -d' ' -f1,2,10 >>$hfilelist
+      #cat $bulkloadout|grep "Trying to load hfile"|cut -d' ' -f1,2,8 >>$hfilelist
+      cat $bulkloadout|grep "Trying to load hfile" >>$hfilelist
     fi
   done <$hdfsout
 done <$tablelist
