@@ -37,11 +37,11 @@ fi
 # variables
 tableNamePattern=$1
 tableNumber=$2
-tmpdir='tmp'
+tmpdir='OMNI_TMP_FILES/'
 
 # files
-createtablelist=$tmpdir"createtable.list.tmp"
-tablecreatedlist=$tmpdir"tablecreated.output.tmp"
+createtablelist=$tmpdir"createtable-$tableNamePattern.list.tmp"
+tablecreatedlist=$tmpdir"tablecreated-$tableNamePattern.output.tmp"
 
 rm -f $createtablelist
 for i in $(seq 1 $tableNumber)
